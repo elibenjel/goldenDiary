@@ -1,3 +1,3 @@
-import { UserDetail } from 'app/screens/UserDetail'
+// import { UserDetail } from 'app/screens/UserDetail'
 
-export default UserDetail
+// export default UserDetail

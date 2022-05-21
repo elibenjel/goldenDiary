@@ -14,12 +14,10 @@ import {
   Box,
 } from 'native-base';
 import { ColorModeSwitch } from '../../components';
-import { useNavigation } from '@react-navigation/native';
 import { useSetHeaderRightLayoutEffect } from '../../provider/navigation';
 
 export function Learn() {
-  const navigation = useNavigation();
-  useSetHeaderRightLayoutEffect(navigation);
+  useSetHeaderRightLayoutEffect();
   return (
     <Center
       flex={1}

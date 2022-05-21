@@ -8,7 +8,7 @@ import {
 } from 'native-base'
 
 export function ColorModeSwitch() {
-  const { colorMode, toggleColorMode } = useColorMode()
+  const { colorMode, toggleColorMode } = useColorMode();
   return (
     <Tooltip
       label={colorMode === 'dark' ? 'Enable light mode' : 'Enable dark mode'}
@@ -18,8 +18,8 @@ export function ColorModeSwitch() {
     >
       <IconButton
         position="absolute"
-        top={12}
-        right={8}
+        top={4}
+        right={2}
         onPress={toggleColorMode}
         icon={colorMode === 'dark' ? <SunIcon /> : <MoonIcon />}
         accessibilityLabel="Color Mode Switch"

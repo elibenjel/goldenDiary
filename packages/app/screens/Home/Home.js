@@ -13,61 +13,28 @@ import {
   AspectRatio,
   Box,
 } from 'native-base';
-import { ColorModeSwitch } from '../../components';
-import { useNavigation } from '@react-navigation/native';
+import { ColorModeSwitch, TopLayout, TitledCard, TextPrimary, TextSecondary } from '../../components';
 import { useSetHeaderRightLayoutEffect } from '../../provider/navigation';
 
 export function Home() {
-  const navigation = useNavigation();
-  useSetHeaderRightLayoutEffect(navigation);
+  useSetHeaderRightLayoutEffect();
   return (
-    <Center
-      flex={1}
-      _dark={{ bg: 'blueGray.900' }}
-      _light={{ bg: 'blueGray.50' }}
-    >
-      <VStack alignItems="center" space="md">
-        <AspectRatio w={40} ratio={1}>
-          <Image
-            rounded="full"
-            source={{
-              uri: 'https://pbs.twimg.com/profile_images/1403658675655372800/mQJWWQhA_400x400.jpg',
-            }}
-            alt="NextJS Logo"
-            resizeMode="contain"
-          />
-        </AspectRatio>
-        <Heading>NativeBase + Solito ❤️</Heading>
-        <Text>
-          Edit <Code>packages/app/home/screen.tsx</Code> and save to reload.
-        </Text>
-        <HStack alignItems="center" space="sm">
-          <Link href="https://solito.dev/" isExternal>
-            <Text
-              _light={{ color: 'gray.700' }}
-              _dark={{ color: 'gray.400' }}
-              underline
-              fontSize={'xl'}
-            >
-              Learn Solito
-            </Text>
-          </Link>
-          <Text>/</Text>
-          <Link href="https://docs.nativebase.io" isExternal>
-            <Text color="primary.500" underline fontSize={'xl'}>
-              Learn NativeBase
-            </Text>
-          </Link>
-        </HStack>
+    <TopLayout>
+      <VStack alignItems="center" justifyContent="space-evenly" p={12} flex={1}>
+        <TitledCard
+          title="Spendings Overview" subtitle="Chart"
+        >
+          <TextPrimary>SummaryChart</TextPrimary>
+          <TextSecondary>Footer</TextSecondary>
+        </TitledCard>
+        <TitledCard title="Advise">
+          <HStack w="90%" alignItems="center" space={3} px="4">
+            <TextPrimary>Advise Advise Advise Advise Advise Advise Advise Advise Advise Advise Advise Advise</TextPrimary>
+            <Button size="sm">Try it</Button>
+          </HStack>
+        </TitledCard>
       </VStack>
       <ColorModeSwitch />
-      <Box mt="6">
-        <SolitoLink href="/user/NativeBase">
-          <Button pointerEvents="none" variant="outline" colorScheme="coolGray">
-            Open User Detail
-          </Button>
-        </SolitoLink>
-      </Box>
-    </Center>
+    </TopLayout>
   )
 }

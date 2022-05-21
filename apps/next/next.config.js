@@ -19,14 +19,14 @@ module.exports = withNativebase({
         ...(config.resolve.alias || {}),
         'react-native$': 'react-native-web',
         '@expo/vector-icons': 'react-native-vector-icons',
-      }
+      };
       config.resolve.extensions = [
         '.web.js',
         '.web.ts',
         '.web.tsx',
         ...config.resolve.extensions,
-      ]
-      return config
+      ];
+      return config;
     },
-  },
-})
+  }
+});

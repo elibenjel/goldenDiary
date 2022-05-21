@@ -13,25 +13,24 @@ import {
   AspectRatio,
   Box,
 } from 'native-base';
-import { ColorModeSwitch } from '../../components';
-import { useNavigation } from '@react-navigation/native';
+import { MaterialCommunityIcons, Feather, Ionicons, AntDesign } from '@expo/vector-icons';
+import { TitledCard, TopLayout, TextPrimary, TextSecondary } from '../../components';
 import { useSetHeaderRightLayoutEffect } from '../../provider/navigation';
 
 export function Spendings() {
-  const navigation = useNavigation();
-  useSetHeaderRightLayoutEffect(navigation);
+  useSetHeaderRightLayoutEffect();
   return (
-    <Center
-      flex={1}
-      _dark={{ bg: 'blueGray.900' }}
-      _light={{ bg: 'blueGray.50' }}
-    >
-      <VStack alignItems="center" space="md">
-        <Text>
-          Spendings Page
-        </Text>
+    <TopLayout>
+      <VStack flex={1} alignItems="center" mt="4" space="md">
+        <TitledCard
+          title="Food"
+          HeaderRight={<Ionicons name="pencil" size="10" color="black" />}
+          TopRightCorner={<Ionicons name="pencil" size="10" color="black" />}
+        >
+          <TextPrimary>300€</TextPrimary>
+          <TextSecondary>{'<400€'}</TextSecondary>
+        </TitledCard>
       </VStack>
-      <ColorModeSwitch />
-    </Center>
+    </TopLayout>
   )
 }

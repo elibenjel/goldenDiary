@@ -1,3 +1,4 @@
+console.log('importing in homestack')
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { headerOptions } from '../../navigation/native';
 import { Home } from './Home';

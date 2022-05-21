@@ -1,39 +1,12 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MaterialCommunityIcons, Feather, Ionicons, AntDesign } from '@expo/vector-icons';
-import { HomeStack } from '../../screens/Home';
-import { BudgetStack } from '../../screens/Budget';
-import { SpendingsStack } from '../../screens/Spendings';
-import { SimulationStack } from '../../screens/Simulation';
-import { LearnStack } from '../../screens/Learn';
+import { Home, Budget, Spendings, Simulation, Learn } from '../../screens';
 import React from 'react';
+import mainScreens from '../main-screens';
 
 const Tab = createBottomTabNavigator();
 
 const tabBarOptions = (route) => ({
-  tabBarIcon: ({ focused, color, size }) => {
-    let IconFamily;
-    let iconName;
-
-    if (route.name === 'HomeStack') {
-      IconFamily = focused ? Ionicons : Ionicons;
-      iconName = focused ? 'home' : 'home-outline';
-    } else if (route.name === 'BudgetStack') {
-      IconFamily = focused ? MaterialCommunityIcons : MaterialCommunityIcons;
-      iconName = focused ? 'piggy-bank' : 'piggy-bank-outline';
-    } else if (route.name === 'SpendingsStack') {
-      IconFamily = focused ? Ionicons : Ionicons;
-      iconName = focused ? 'receipt' : 'receipt-outline';
-    } else if (route.name === 'LearnStack') {
-      IconFamily = focused ? AntDesign : AntDesign;
-      iconName = focused ? 'questioncircle' : 'questioncircleo';
-    } else if (route.name === 'SimulationStack') {
-      IconFamily = focused ? Ionicons : Ionicons;
-      iconName = focused ? 'bar-chart' : 'bar-chart-outline';
-    }
-
-    // You can return any component that you like here!
-    return React.createElement(IconFamily, { name : iconName, size, color });
-  },
+  tabBarIcon: mainScreens[route.name.substring(0, route.name.length - 5)].icon,
   tabBarActiveTintColor: 'tomato',
   tabBarInactiveTintColor: 'gray',
 });
@@ -63,23 +36,23 @@ export function NativeNavigation() {
     >
       <Tab.Screen
         name="SpendingsStack"
-        component={SpendingsStack}
+        component={Spendings}
       />
       <Tab.Screen
         name="BudgetStack"
-        component={BudgetStack}
+        component={Budget}
       />
       <Tab.Screen
         name="HomeStack"
-        component={HomeStack}
+        component={Home}
       />
       <Tab.Screen
         name="SimulationStack"
-        component={SimulationStack}
+        component={Simulation}
       />
       <Tab.Screen
         name="LearnStack"
-        component={LearnStack}
+        component={Learn}
       />
     </Tab.Navigator>
   )
