@@ -1,13 +1,13 @@
-console.log('importing in app')
 import { Provider } from 'app/provider';
 import Head from 'next/head';
 import React from 'react';
 import 'raf/polyfill';
+import { useRouter } from 'next/router';
 import { WebNavigation } from 'app/navigation/web';
-console.log('finished importing in app ', Provider, WebNavigation)
 
 
 function MyApp({ Component, pageProps }) {
+  const router = useRouter();
   return (
     <>
       <Head>
@@ -19,7 +19,7 @@ function MyApp({ Component, pageProps }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Provider>
-        <WebNavigation direction='row'>
+        <WebNavigation router={router} direction='row'>
           <Component {...pageProps} />
         </WebNavigation>
       </Provider>

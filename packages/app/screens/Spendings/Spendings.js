@@ -13,7 +13,7 @@ import {
   AspectRatio,
   Box,
 } from 'native-base';
-import { MaterialCommunityIcons, Feather, Ionicons, AntDesign } from '@expo/vector-icons';
+import { MaterialCommunityIcons, Feather, Ionicons, AntDesign } from '../../assets/icons';
 import { TitledCard, TopLayout, TextPrimary, TextSecondary } from '../../components';
 import { useSetHeaderRightLayoutEffect } from '../../provider/navigation';
 

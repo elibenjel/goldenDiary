@@ -1,5 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { headerOptions } from '../../navigation/native';
+import { headerOptions } from '../../navigation/native/options';
 import { Budget } from './Budget';
 import React from 'react';
 

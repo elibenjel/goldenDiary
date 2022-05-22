@@ -1,4 +1,5 @@
-import { MaterialCommunityIcons, Feather, Ionicons, AntDesign } from '@expo/vector-icons';
+import { MaterialCommunityIcons, Feather, Ionicons, AntDesign } from '../assets/icons';
+import { SunIcon } from 'native-base';
 import React from 'react';
 
 const mainScreens = {};
@@ -51,7 +52,7 @@ mainScreens.Learn = {
     const iconName = focused ? 'questioncircle' : 'questioncircleo';
     return React.createElement(IconFamily, { name : iconName, size, color });
   },
-  linkTo: 'learn'
+  linkTo: '/learn'
 }
 
 export default mainScreens;
