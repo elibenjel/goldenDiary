@@ -13,7 +13,7 @@ import {
   AspectRatio,
   Box,
 } from 'native-base';
-import { ColorModeSwitch, TopLayout, TitledCard, TextPrimary, TextSecondary } from '../../components';
+import { ColorModeSwitch, TopLayout, LargeTitledCard, TextPrimary, TextSecondary } from '../../components';
 import { useSetHeaderRightLayoutEffect } from '../../provider/navigation';
 
 export function Home() {
@@ -21,18 +21,18 @@ export function Home() {
   return (
     <TopLayout>
       <VStack alignItems="center" justifyContent="space-evenly" p={12} flex={1}>
-        <TitledCard
-          title="Spendings Overview" subtitle="Chart"
+        <LargeTitledCard
+          title="Spendings Overview" subtitle="Chart" p="4"
         >
           <TextPrimary>SummaryChart</TextPrimary>
           <TextSecondary>Footer</TextSecondary>
-        </TitledCard>
-        <TitledCard title="Advise">
+        </LargeTitledCard>
+        <LargeTitledCard title="Advise" p="4">
           <HStack w="90%" alignItems="center" space={3} px="4">
             <TextPrimary>Advise Advise Advise Advise Advise Advise Advise Advise Advise Advise Advise Advise</TextPrimary>
             <Button size="sm">Try it</Button>
           </HStack>
-        </TitledCard>
+        </LargeTitledCard>
       </VStack>
       <ColorModeSwitch />
     </TopLayout>

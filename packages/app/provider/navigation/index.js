@@ -25,10 +25,13 @@ export function NavigationProvider({ children }) {
         () => ({
           prefixes: [Linking.createURL('/')],
           config: {
-            initialRouteName: 'Home',
+            initialRouteName: '',
             screens: {
               Home: '',
-              UserDetail: 'user/:id',
+              Spendings: 'spendings',
+              Budget: 'budget',
+              Simulation: 'simulation',
+              Learn: 'learn'
             },
           },
         }),

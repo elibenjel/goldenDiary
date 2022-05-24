@@ -26,6 +26,20 @@ export const SubHeaderText = (props) => {
   )
 }
 
+export const FooterText = (props) => {
+  return (
+    <Text
+      fontSize="10" fontWeight="300"
+      _light={{
+        color: "violet.500"
+      }} _dark={{
+        color: "violet.400"
+      }}
+      {...props}
+    ></Text>
+  )
+}
+
 export const TextPrimary = (props) => {
   return (
     <Text fontWeight="400"

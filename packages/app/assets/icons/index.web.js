@@ -8,5 +8,6 @@ module.exports.MaterialCommunityIcons = BaseIconFamily;
 module.exports.Feather = BaseIconFamily;
 module.exports.Ionicons = BaseIconFamily;
 module.exports.AntDesign = BaseIconFamily;
-module.exports.FontAwesome5 = BaseIconFamily;
+module.exports.Entypo = BaseIconFamily;
 module.exports.FontAwesome = BaseIconFamily;
+module.exports.FontAwesome5 = BaseIconFamily;
