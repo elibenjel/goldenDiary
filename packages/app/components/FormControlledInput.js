@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { Box, FormControl, Input, HStack, Menu, IconButton, ChevronDownIcon } from "native-base";
+import { Box, FormControl, Input, HStack, Menu, IconButton, ChevronDownIcon, TextField } from "native-base";
 import { Feather } from "../assets/icons";
-import { Pressable } from "react-native";
+import { Pressable, Keyboard } from "react-native";
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export const FormControlledTextField = (props) => {
-  const { label, fieldState, placeholder, InputProps, labelLeftIcon, errorHandler } = props;
+  const { label, fieldState, placeholder, InputProps, labelLeftIcon, errorHandler, stackWidth } = props;
   const [value, setValue] = fieldState;
 
   let isInvalid = false, errorMessage;
@@ -14,14 +15,15 @@ export const FormControlledTextField = (props) => {
       isInvalid = true;
     }
   }
+
   return (
     <FormControl isInvalid={isInvalid}>
       <HStack alignItems="center">
         <FormControl.Label mb="12px">{label}</FormControl.Label>
         {labelLeftIcon ? <Box mt="5px" mb="15px">{labelLeftIcon}</Box> : null}
       </HStack>
-      <HStack alignItems="center" w="100vw" maxW={300}>
-        <Input flex={1} placeholder={placeholder} value={value} onChange={(e) => setValue(e.target.value)} {...InputProps} />
+      <HStack alignItems="center" w={stackWidth} maxW={300}>
+        <Input flex={1} placeholder={placeholder} value={value} onChangeText={(newValue) => setValue(newValue)} {...InputProps} />
       </HStack>
       <FormControl.ErrorMessage leftIcon={<Feather size="xs" color="rgb(150,0,0)" />}>
         {errorMessage}
@@ -30,42 +32,60 @@ export const FormControlledTextField = (props) => {
   );
 };
 
-
-export const FormControlledSelect = (props) => {
-  const { isInvalid, label, items, selectState, placeholder, InputProps, labelLeftIcon } = props;
+const Select = (props) => {
+  const { selectState, items, placeholder, InputProps, menuProps } = props;
   const [selectedValue, setSelectedValue] = selectState;
-  const [placement, setPlacement] = useState('');
 
   return (
-    <FormControl isInvalid={isInvalid}>
+    <Menu {...menuProps} trigger={triggerProps => {
+      return (
+          <Pressable onPressIn={() => Keyboard.dismiss()} {...triggerProps}>
+            <Input
+              placeholder={placeholder} value={selectedValue} editable={false}
+              InputRightElement={
+                <ChevronDownIcon size="xs" color="black" mr="2" />
+              }
+              {...InputProps}
+            />
+          </Pressable>
+      )
+    }}>
+      {
+        items.map(item => <Menu.Item key={item.label} onPress={() => setSelectedValue(item.value)}>{item.label}</Menu.Item>)
+      }
+    </Menu>
+  )
+}
+
+export const FormControlledSelect = (props) => {
+  const { label, labelLeftIcon, stackWidth, ...selectProps } = props;
+  const [menuWidth, setMenuWidth] = useState(null);
+  const [placement, setPlacement] = useState('bottom');
+  const onOpen = () => {
+    setPlacement('bottom left');
+  }
+  
+  const onLayout = (layoutEvent) => {
+    setMenuWidth(layoutEvent.nativeEvent.layout.width);
+  }
+
+  const menuProps = { placement, onOpen, w: menuWidth };
+
+  return (
+    <FormControl>
       <HStack alignItems="center">
         <FormControl.Label mb="12px">{label}</FormControl.Label>
         {labelLeftIcon ? <Box mt="5px" mb="15px">{labelLeftIcon}</Box> : null}
       </HStack>
-      <HStack alignItems="center" w="100vw" maxW={300}>
-        <Box flex={1}>
-          <Menu w={300} onOpen={() => setPlacement('bottom left')} placement={placement} trigger={triggerProps => {
-            return (
-                <Pressable {...triggerProps}>
-                  <Input
-                    placeholder={placeholder} value={selectedValue} editable={false}
-                    InputRightElement={
-                      <ChevronDownIcon size="xs" color="black" mr="2" />
-                    }
-                    {...InputProps}
-                  />
-                </Pressable>
-            )
-          }}>
-            {
-              items.map(item => <Menu.Item key={item.label} onPress={() => setSelectedValue(item.value)}>{item.label}</Menu.Item>)
-            }
-          </Menu>
+      <HStack alignItems="center" w={stackWidth} maxW={300}>
+        <Box onLayout={onLayout} flex={1}>
+          <Select menuProps={menuProps} {...selectProps} />
         </Box>
       </HStack>
-      <FormControl.ErrorMessage leftIcon={<Feather size="xs" color="rgb(150,0,0)" />}>
-        {''}
-      </FormControl.ErrorMessage>
     </FormControl>
   );
 };
+
+export const FormControlledDatePicker = (props) => {
+  return <DateTimePicker {...props} />;
+}

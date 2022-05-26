@@ -1,11 +1,11 @@
-import React from 'react'
-import { NavigationContainer } from '@react-navigation/native'
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import * as Linking from 'expo-linking'
-import { useMemo } from 'react'
+import * as Linking from 'expo-linking';
+import { useMemo } from 'react';
 import {
   Button
-} from 'native-base'
+} from 'native-base';
 
 export const useSetHeaderRightLayoutEffect = () => {
   const navigation = useNavigation();
