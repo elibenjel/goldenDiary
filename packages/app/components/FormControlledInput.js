@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { Box, FormControl, Input, HStack, Menu, IconButton, ChevronDownIcon, TextField } from "native-base";
+import { Box, FormControl, Input, HStack, Menu, IconButton, ChevronDownIcon, TextField, useTheme } from "native-base";
 import { Feather } from "../assets/icons";
 import { Pressable, Keyboard } from "react-native";
-import DateTimePicker from '@react-native-community/datetimepicker';
 
 export const FormControlledTextField = (props) => {
   const { label, fieldState, placeholder, InputProps, labelLeftIcon, errorHandler, stackWidth } = props;
@@ -86,6 +85,27 @@ export const FormControlledSelect = (props) => {
   );
 };
 
+
 export const FormControlledDatePicker = (props) => {
-  return <DateTimePicker {...props} />;
+  const { colors, fontSizes } = useTheme()
+  const { value, onChange } = props;
+
+  const leftZeroPadding = (n) => `${n < 10 ? '0' : ''}${n}`;
+  const date = `${value.year}-${leftZeroPadding(value.month)}-${leftZeroPadding(value.day)}`;
+  const onInput = (e, d) => {
+    const [year, month, day] = d.split('-').map(str => Number(str));
+    onChange({ day, month, year });
+  }
+
+  return (
+    <input type="date" value={date} onInput={onInput} style={{
+      appearance: 'none',
+      '-webkit-appearance': 'none',
+      color: colors.coolGray[400],
+      fontSize: fontSizes.xs,
+      border: `2px solid #ecf0f1`,
+      background: colors.light[50],
+      padding: '4px',
+    }} />
+  )
 }

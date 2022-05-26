@@ -33,7 +33,14 @@ const SpendingsUpdaterForm = (props) => {
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
   const [categories, setCategories] = useState([{ label: 'test', value: 'test' }]);
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(() => {
+    const now = new Date();
+    return {
+      day: now.getDate(),
+      month: now.getMonth() + 1,
+      year: now.getFullYear()
+    }
+  });
   const [showModal, setShowModal] = useState(false);
 
   const { width } = useWindowDimensions();
@@ -71,7 +78,7 @@ const SpendingsUpdaterForm = (props) => {
           placementTimeout={500}
         />
         <HStack alignItems="center" justifyContent="space-between">
-          <FormControlledDatePicker w={500} testID="picker" mode="date" is24Hour={true} value={date} onChange={(event, date) => setDate(date)} />
+          <FormControlledDatePicker value={date} onChange={(date) => setDate(date)} />
         </HStack>
       </FormSheet>
       <ModalUpdater

@@ -45,6 +45,7 @@ export const FormSheet = (props) => {
     Animated.timing(bottomAni, {
       toValue: bottomInset,
       duration: 500,
+      useNativeDriver: false
     }).start();
   }, [bottomInset]);
 
