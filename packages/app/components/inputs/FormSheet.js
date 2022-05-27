@@ -1,5 +1,5 @@
 import React from "react";
-import { Center, Actionsheet } from "native-base";
+import { Actionsheet } from "native-base";
 import { Keyboard, Platform } from 'react-native';
 import { Animated } from 'react-native';
 
@@ -55,7 +55,7 @@ export const FormSheet = (props) => {
         <Actionsheet.Content pb="8">
           {
             children.map((child, index) => (
-              <Actionsheet.Item key={childrenKeys[index]} justifyContent="center" disabled>
+              <Actionsheet.Item key={childrenKeys[index]} disabled>
                 {child}
               </Actionsheet.Item>
             ))

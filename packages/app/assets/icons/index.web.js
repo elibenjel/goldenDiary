@@ -5,6 +5,7 @@ const BaseIconFamily = ({ name, size, color }) => {
 }
 
 module.exports.MaterialCommunityIcons = BaseIconFamily;
+module.exports.MaterialIcons = BaseIconFamily;
 module.exports.Feather = BaseIconFamily;
 module.exports.Ionicons = BaseIconFamily;
 module.exports.AntDesign = BaseIconFamily;

@@ -1,32 +1,24 @@
 import { Link as SolitoLink } from 'solito/link';
 import React, { useState } from 'react';
 import {
-  Center,
-  Image,
   HStack,
-  Text,
-  Input,
-  Select,
-  Heading,
-  Code,
-  Link,
   VStack,
-  Button,
-  AspectRatio,
   Box,
   IconButton,
-  FlatList,
   useDisclose,
-  Actionsheet,
-  KeyboardAvoidingView
+  Divider
 } from 'native-base';
-import { MaterialCommunityIcons, Feather, Ionicons, Entypo, AntDesign } from '../../assets/icons';
+import { useWindowDimensions } from 'react-native';
+import { Ionicons, Entypo, AntDesign } from '../../assets/icons';
 import { SmallTitledCard, TopLayout, TextPrimary, MediumTitledCard } from '../../components';
 import { useSetHeaderRightLayoutEffect } from '../../provider/navigation';
-import { FormControlledTextField, FormControlledSelect, FormControlledDatePicker } from '../../components/FormControlledInput';
-import { ModalUpdater } from '../../components/ModalUpdater';
-import { useWindowDimensions } from 'react-native';
-import { FormSheet } from '../../components/FormSheet';
+import {
+  FormControlledTextField,
+  FormControlledSelect,
+  FormControlledDatePicker,
+  ModalUpdater,
+  FormSheet
+} from '../../components/inputs';
 
 const SpendingsUpdaterForm = (props) => {
   const { disclose } = props;
@@ -41,49 +33,60 @@ const SpendingsUpdaterForm = (props) => {
       year: now.getFullYear()
     }
   });
+  const [amount, setAmount] = useState('');
   const [showModal, setShowModal] = useState(false);
 
-  const { width } = useWindowDimensions();
-  
-  const errorHandler = (v) => {
-    let message = '';
-    categories.forEach(c => {
-      console.log(v, c)
-      if (v === c.value) {
-        message = 'Cette catégorie existe déjà';
-      }
-    });
-    return message;
+  let { width } = useWindowDimensions();
+  if (width > 300) {
+    width = 300;
   }
+  
+  const addCategory = (newCat) => {
+    setCategories(current => [...current, { label: newCat, value: newCat }])
+    setCategory(newCat)
+  }
+
+  const addCategoryErrorHandler = (v) => {
+    return categories.every(c => v !== c.value) ? '' : 'Cette catégorie existe déjà';
+  }
+
 
   return (
     <Box>
       <FormSheet disclose={disclose} childrenKeys={['nameField', 'categorySelect']}>
         <FormControlledTextField
-          fieldState={[name, setName]}
+          state={[name, setName]}
           label="Nom" errorHandler={() => 'Erreur'}
           placeholder="Choisir un nom pour la dépense"
-          stackWidth={width}
-          InputProps={{ size: 'xs' }}
+          width={width}
+          size="xs"
         />
         <FormControlledSelect
-          selectState={[category, setCategory]}
+          state={[category, setCategory]}
+          items={categories}
           label="Catégorie" labelLeftIcon={
             <IconButton onPress={() => setShowModal(!showModal)} icon={<AntDesign name="plussquare" size="2" color="black" />} />
           }
           placeholder="Choisir la catégorie de la dépense"
-          items={categories}
-          stackWidth={width}
-          InputProps={{ size: 'xs' }}
-          placementTimeout={500}
+          width={width}
+          size="xs"
         />
-        <HStack alignItems="center" justifyContent="space-between">
-          <FormControlledDatePicker value={date} onChange={(date) => setDate(date)} />
+        <HStack alignItems="center" justifyContent="space-between" w={width}>
+          <FormControlledDatePicker label="Date" state={[date, setDate]} width={0.45*width} />
+          <Divider orientation="vertical" mr={2} />
+          <FormControlledTextField
+            state={[amount, setAmount]}
+            label="Montant" errorHandler={(v) => v === '' || (v === Number(v) && v > 0) ? '' : 'Entrer un montant valide'}
+            placeholder="Montant de la dépense"
+            width={0.45*width}
+            size="xs"
+        />
         </HStack>
       </FormSheet>
       <ModalUpdater
-        modalState={[showModal, setShowModal]} update={(v) => setCategories(current => [...current, { label: v, value: v }])}
-        header="Ajouter une catégorie" placeholder="Entrer la nouvelle catégorie" errorHandler={errorHandler}
+        modalState={[showModal, setShowModal]} update={addCategory}
+        header="Ajouter une catégorie" placeholder="Entrer la nouvelle catégorie"
+        errorHandler={addCategoryErrorHandler}
       />
       </Box>
   );

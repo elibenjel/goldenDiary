@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Modal, Button } from "native-base";
-import { FormControlledTextField } from "./FormControlledInput";
+import { FormControlledTextField } from "./FormControlledTextField";
 
 export const ModalUpdater = (props) => {
   const { modalState, update, header, label, placeholder, errorHandler } = props;
@@ -20,9 +20,9 @@ export const ModalUpdater = (props) => {
           <Modal.Body>
             <FormControlledTextField
               label={label} errorHandler={errorHandler}
-              placeholder={placeholder} fieldState={[value, setValue]}
-              stackWidth={fieldWidth}
-              InputProps={{ size: 'xs' }}
+              placeholder={placeholder} state={[value, setValue]}
+              width={fieldWidth}
+              size="xs"
             />
           </Modal.Body>
           <Modal.Footer>
@@ -30,13 +30,13 @@ export const ModalUpdater = (props) => {
               <Button variant="ghost" colorScheme="blueGray" onPress={() => {
                 setShowModal(false);
               }}>
-                Cancel
+                Annuler
               </Button>
-              <Button isDisabled={errorHandler(value) !== ''} onPress={() => {
+              <Button isDisabled={value === '' || errorHandler(value) !== ''} onPress={() => {
                 update(value);
                 setShowModal(false);
               }}>
-                Save
+                Confirmer
               </Button>
             </Button.Group>
           </Modal.Footer>
