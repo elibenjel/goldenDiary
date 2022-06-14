@@ -1,11 +1,21 @@
 import React, { useState } from "react";
 import { Modal, Button } from "native-base";
 import { FormControlledTextField } from "./FormControlledTextField";
+import { useValidator } from "./useValidator";
 
 export const ModalUpdater = (props) => {
-  const { modalState, update, header, label, placeholder, errorHandler } = props;
+  const { modalState, update, header, label, placeholder, validator } = props;
   const [showModal, setShowModal] = modalState;
   const [value, setValue] = useState('');
+  const { isValid, message } = validator;
+  const { valid, messages } = useValidator({
+    updatedField: {
+      value,
+      isValid,
+      message
+    }
+  })
+
   const [fieldWidth, setFieldWidth] = useState(null);
   const onLayout = (event) => {
     const width = event.nativeEvent.layout.width;
@@ -19,7 +29,7 @@ export const ModalUpdater = (props) => {
           <Modal.Header onLayout={onLayout}>{header}</Modal.Header>
           <Modal.Body>
             <FormControlledTextField
-              label={label} errorHandler={errorHandler}
+              label={label} errorMessage={messages.updatedField}
               placeholder={placeholder} state={[value, setValue]}
               width={fieldWidth}
               size="xs"
@@ -32,7 +42,7 @@ export const ModalUpdater = (props) => {
               }}>
                 Annuler
               </Button>
-              <Button isDisabled={value === '' || errorHandler(value) !== ''} onPress={() => {
+              <Button isDisabled={!valid} onPress={() => {
                 update(value);
                 setShowModal(false);
               }}>

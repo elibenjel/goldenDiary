@@ -32,7 +32,7 @@ const useKeyboardBottomInset = () => {
 };
 
 export const FormSheet = (props) => {
-  const { disclose, childrenKeys, children } = props
+  const { disclose, children, ...other } = props
   const {
     isOpen,
     onClose
@@ -55,7 +55,7 @@ export const FormSheet = (props) => {
         <Actionsheet.Content pb="8">
           {
             children.map((child, index) => (
-              <Actionsheet.Item key={childrenKeys[index]} disabled>
+              <Actionsheet.Item key={child.key} disabled>
                 {child}
               </Actionsheet.Item>
             ))

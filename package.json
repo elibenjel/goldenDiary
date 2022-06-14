@@ -12,7 +12,8 @@
     "turbo": "^1.1.6"
   },
   "scripts": {
-    "native": "cd apps/expo && expo start",
+    "native": "cd apps/expo && yarn start",
+    "android": "cd apps/expo && yarn android",
     "web": "cd apps/next && yarn next"
   }
 }

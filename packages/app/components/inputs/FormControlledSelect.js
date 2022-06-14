@@ -5,6 +5,7 @@ import { FormControlledInput } from "./FormControlledInput";
 
 const Select = (props) => {
   const { selected, setSelected, items, menuProps, ...other } = props;
+  console.log('items', items)
 
   return (
     <Menu {...menuProps} trigger={triggerProps => {
@@ -28,7 +29,7 @@ const Select = (props) => {
 }
 
 export const FormControlledSelect = (props) => {
-  const { label, state, labelLeftIcon, errorHandler, width, ...selectProps } = props;
+  const { label, state, labelLeftIcon, errorMessage, width, ...selectProps } = props;
   const [selected, setSelected] = state;
   const [menuWidth, setMenuWidth] = useState(null);
   const [placement, setPlacement] = useState('bottom');
@@ -45,7 +46,7 @@ export const FormControlledSelect = (props) => {
   return (
     <FormControlledInput
       label={label} labelLeftIcon={labelLeftIcon}
-      w={width} errorHandler={errorHandler} value={selected}
+      w={width} errorMessage={errorMessage} value={selected}
     >
       <Box onLayout={onLayout} w={width} flex={1}>
         <Select selected={selected} setSelected={setSelected} menuProps={menuProps} {...selectProps} />

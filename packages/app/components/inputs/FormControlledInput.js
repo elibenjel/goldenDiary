@@ -4,15 +4,7 @@ import { MaterialIcons } from "../../assets/icons";
 import { MAX_FIELD_WIDTH } from "./constants";
 
 export const FormControlledInput = (props) => {
-  const { label, labelLeftIcon, w, children, errorHandler = () => '', value, ...other } = props;
-
-  let isInvalid = false, errorMessage;
-  if (errorHandler) {
-    errorMessage = errorHandler(value);
-    if (errorMessage !== '') {
-      isInvalid = true;
-    }
-  }
+  const { label, labelLeftIcon, w, children, errorMessage = '', value, ...other } = props;
 
   return (
     <FormControl isInvalid={isInvalid} w={w} {...other}>

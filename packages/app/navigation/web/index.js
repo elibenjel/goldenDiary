@@ -14,7 +14,7 @@ export function WebNavigation(props) {
   return (
     <>
       <Stack direction={direction} bg={bg} px="1" justifyContent="space-between" alignItems="center" w="100%">
-        <Stack direction={direction} alignItems="center">
+        <Stack direction={direction} alignItems="center" w="15%">
           <FontAwesome5 name="journal-whills" size="sm" color="yellow" />
           <Text color="black" fontSize="20" fontWeight="bold">
             GOLDEN DIARY
@@ -25,7 +25,7 @@ export function WebNavigation(props) {
           tabIconColor={tabIconColor} focusedTabIconColor={focusedTabIconColor}
           tabIconSize={tabIconSize}
         />
-        <Stack direction={direction}>
+        <Stack direction={direction} justifyContent="flex-end" w="15%">
           <IconButton icon={<FontAwesome name="user-circle-o" size="sm" color="black" />} />
         </Stack>
       </Stack>

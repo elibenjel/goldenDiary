@@ -5,15 +5,18 @@ import DatePicker from 'react-native-datepicker';
 import { FormControlledInput } from "./FormControlledInput";
 
 const MyDatePicker = (props) => {
-  const { value, onChange, ...other } = props;
-  const { colors, fontSizes } = useTheme()
+  const { date, onChange, ...other } = props;
+  const { colors, fontSizes } = useTheme();
+  const year = date.getfullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
 
   const leftZeroPadding = (n) => `${n < 10 ? '0' : ''}${n}`;
-  const date = `${value.year}-${leftZeroPadding(value.month)}-${leftZeroPadding(value.day)}`;
+  const dateStr = `${year}-${leftZeroPadding(month)}-${leftZeroPadding(day)}`;
   const onInput = (e, d) => {
     if (d === undefined) return;
     const [year, month, day] = d.split('-').map(str => Number(str));
-    onChange({ day, month, year });
+    onChange(new Date(year, month-1, day));
   }
 
   return (
@@ -22,7 +25,7 @@ const MyDatePicker = (props) => {
       Platform.OS !== 'web' ?
         <DatePicker
           locale='fr'
-          date={date}
+          date={dateStr}
           mode="date"
           placeholder="Choisir la date"
           format="DD-MM-YYYY"
@@ -68,14 +71,14 @@ const MyDatePicker = (props) => {
 }
 
 export const FormControlledDatePicker = (props) => {
-  const { label, state, labelLeftIcon, errorHandler, width, ...datePickerProps } = props;
+  const { label, state, labelLeftIcon, errorMessage, width, ...datePickerProps } = props;
   const [date, setDate] = state;
   return (
     <FormControlledInput
       label={label} labelLeftIcon={labelLeftIcon}
-      _ios={{ mt : 1 }} _web={{ mt : -1}} w={width} errorHandler={errorHandler} value={date}
+      _ios={{ mt : 1 }} _web={{ mt : -1}} w={width} errorMessage={errorMessage} value={date}
     >
-      <MyDatePicker value={date} onChange={(date) => setDate(date)} {...datePickerProps} />
+      <MyDatePicker date={date} onChange={(date) => setDate(date)} {...datePickerProps} />
     </FormControlledInput>
   )
 }

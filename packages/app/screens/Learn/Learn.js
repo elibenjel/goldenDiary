@@ -13,23 +13,19 @@ import {
   AspectRatio,
   Box,
 } from 'native-base';
-import { ColorModeSwitch } from '../../components';
+import { ColorModeSwitch, TopLayout } from '../../components';
 import { useSetHeaderRightLayoutEffect } from '../../provider/navigation';
 
 export function Learn() {
   useSetHeaderRightLayoutEffect();
   return (
-    <Center
-      flex={1}
-      _dark={{ bg: 'blueGray.900' }}
-      _light={{ bg: 'blueGray.50' }}
-    >
+    <TopLayout>
       <VStack alignItems="center" space="md">
         <Text>
           Learn Page
         </Text>
       </VStack>
       <ColorModeSwitch />
-    </Center>
+    </TopLayout>
   )
 }
