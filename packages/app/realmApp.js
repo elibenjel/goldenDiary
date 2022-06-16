@@ -3,6 +3,4 @@ import { appId } from './realm.json';
 
 
 // Invokes the shared instance of the Realm app.
-const app = new Realm.App({ id: appId });
-export default app;
-
+export const app = new Realm.App({ id: appId });

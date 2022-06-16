@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import * as Linking from 'expo-linking';
+// import * as Linking from 'expo-linking';
 import { useMemo } from 'react';
 import {
   Button
@@ -23,7 +23,7 @@ export function NavigationProvider({ children }) {
     <NavigationContainer
       linking={useMemo(
         () => ({
-          prefixes: [Linking.createURL('/')],
+          // prefixes: [Linking.createURL('/')],
           config: {
             initialRouteName: '',
             screens: {
