@@ -7,7 +7,7 @@ import { FormControlledInput } from "./FormControlledInput";
 const MyDatePicker = (props) => {
   const { date, onChange, ...other } = props;
   const { colors, fontSizes } = useTheme();
-  const year = date.getfullYear();
+  const year = date.getFullYear();
   const month = date.getMonth() + 1;
   const day = date.getDate();
 
@@ -43,7 +43,7 @@ const MyDatePicker = (props) => {
             dateInput: {
               marginLeft: 36,
               height: 30,
-              borderRadius: '4px',
+              borderRadius: 4,
               borderColor: `${colors.coolGray[200]}`
             },
             dateText: {
@@ -73,6 +73,7 @@ const MyDatePicker = (props) => {
 export const FormControlledDatePicker = (props) => {
   const { label, state, labelLeftIcon, errorMessage, width, ...datePickerProps } = props;
   const [date, setDate] = state;
+  console.log(date)
   return (
     <FormControlledInput
       label={label} labelLeftIcon={labelLeftIcon}

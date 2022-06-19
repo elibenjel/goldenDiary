@@ -5,6 +5,7 @@ import { MAX_FIELD_WIDTH } from "./constants";
 
 export const FormControlledInput = (props) => {
   const { label, labelLeftIcon, w, children, errorMessage = '', value, ...other } = props;
+  const isInvalid = errorMessage.length > 0;
 
   return (
     <FormControl isInvalid={isInvalid} w={w} {...other}>

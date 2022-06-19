@@ -1,5 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, Budget, Spendings, Simulation, Learn } from '../../screens';
+import { Home, Budget, Spending, Simulation, Learn } from '../../screens';
 import React from 'react';
 import { tabBarOptions } from './options';
 
@@ -18,8 +18,8 @@ export function NativeNavigation() {
       }
     >
       <Tab.Screen
-        name="SpendingsStack"
-        component={Spendings}
+        name="SpendingStack"
+        component={Spending}
       />
       <Tab.Screen
         name="BudgetStack"

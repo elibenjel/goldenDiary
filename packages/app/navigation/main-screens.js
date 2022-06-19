@@ -15,14 +15,14 @@ mainScreens.Home = {
 }
 
 
-mainScreens.Spendings = {
-  title: 'Spendings',
+mainScreens.Spending = {
+  title: 'Spending',
   icon: ({ focused, color, size }) => {
     const IconFamily = focused ? Ionicons : Ionicons;
     const iconName = focused ? 'receipt' : 'receipt-outline';
     return React.createElement(IconFamily, { name : iconName, size, color });
   },
-  linkTo: '/spendings'
+  linkTo: '/spending'
 }
 
 mainScreens.Budget = {

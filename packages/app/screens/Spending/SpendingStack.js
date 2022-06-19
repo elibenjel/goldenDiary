@@ -1,18 +1,18 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { headerOptions } from '../../navigation/native/options';
-import { Spendings } from './Spendings';
+import { Spending } from './Spending';
 import React from 'react';
 
 const Stack = createNativeStackNavigator();
 
-export function SpendingsStack() {
+export const SpendingStack = () => {
   return (
     <Stack.Navigator
       screenOptions={({ route }) => ({ ...headerOptions(route) })}
     >
       <Stack.Screen
-        name="Spendings"
-        component={Spendings}
+        name="Spending"
+        component={Spending}
       />
     </Stack.Navigator>
   )

@@ -12,7 +12,6 @@ const AuthContext = React.createContext(null);
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(app.currentUser);
   const realmRef = useRef(null);
-  console.log(user)
   const [userData, setUserData] = useState({});
 
   useEffect(() => {

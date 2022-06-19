@@ -23,11 +23,11 @@ import {
   FormSheet
 } from '../../components/inputs';
 import { isNonNegativeValue } from '../../utils/validators';
-import { useSpendingHistory } from '../../provider/api';
+import { SpendingHistoryProvider, useSpendingHistory } from '../../provider/api';
 import { useDiary } from '../../provider/api';
 import { useValidator } from '../../components/inputs/useValidator';
 
-const SpendingsForm = (props) => {
+const SpendingForm = (props) => {
   const { disclose } = props;
   const { createSpending, updateSpending, deleteSpending } = useSpendingHistory();
   const { diary, updateDiary } = useDiary();
@@ -91,7 +91,7 @@ const SpendingsForm = (props) => {
           state={[category, setCategory]}
           items={diary.spendingCategories.map(c => ({ label: c, value: c }))}
           label="Catégorie" labelLeftIcon={
-            <IconButton onPress={() => setShowModal(!showModal)} icon={<AntDesign name="plussquare" size="2" color="black" />} />
+            <IconButton onPress={() => setShowModal(!showModal)} icon={<AntDesign name="plussquare" size={2} color="black" />} />
           }
           placeholder="Choisir la catégorie de la dépense"
           width={width}
@@ -124,7 +124,7 @@ const SpendingsForm = (props) => {
   );
 }
 
-export function Spendings() {
+const SpendingManager = () => {
   const { spendingHistory } = useSpendingHistory();
   const [period, setPeriod] = useState(null);
 
@@ -132,7 +132,6 @@ export function Spendings() {
   const disclose = useDisclose();
 
   return (
-    <SpendingHistoryProvider>
       <TopLayout>
         <VStack flex={1} my="4" alignItems="center" justifyContent="space-between" >
           <VStack flex={1} alignItems="center" space="md">
@@ -170,8 +169,15 @@ export function Spendings() {
           </VStack>
           <Icon onPress={disclose.onOpen} family={Entypo} name='add-to-list' size="xs" color="black" />
         </VStack>
-        <SpendingsForm disclose={disclose}/>
+        <SpendingForm disclose={disclose}/>
       </TopLayout>
+  )
+}
+
+export const Spending = (props) => {
+  return (
+    <SpendingHistoryProvider>
+      <SpendingManager {...props} />
     </SpendingHistoryProvider>
   )
 }

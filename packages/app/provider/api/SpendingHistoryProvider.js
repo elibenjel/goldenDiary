@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 import Realm from "realm";
-import models from "./models";
+import { models } from "./models";
 import { useAuth } from "../authentication";
 import { useDiary } from "./DiaryProvider";
 
@@ -53,12 +53,15 @@ const SpendingHistoryProvider = ({ children }) => {
     Realm.open(config).then((spendingRealm) => {
       realmRef.current = spendingRealm;
 
+      console.log('Realm open')
       const sortedSpending = spendingRealm.objects("Spending").sorted(options.sortBy, options.descending);
+      console.log(sortedSpending)
 
       setSpendingHistory([...sortedSpending]);
       sortedSpending.addListener(() => {
         setSpendingHistory([...sortedSpending]);
       });
+      console.log(spendingHistory)
     });
 
     return () => {

@@ -22,7 +22,7 @@ export function Home() {
     <TopLayout>
       <VStack alignItems="center" justifyContent="space-evenly" p={12} flex={1}>
         <LargeTitledCard
-          title="Spendings Overview" subtitle="Chart" p="4"
+          title="Spending Overview" subtitle="Chart" p="4"
         >
           <TextPrimary>SummaryChart</TextPrimary>
           <TextSecondary>Footer</TextSecondary>

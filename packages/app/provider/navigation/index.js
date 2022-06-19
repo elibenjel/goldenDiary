@@ -28,7 +28,7 @@ export function NavigationProvider({ children }) {
             initialRouteName: '',
             screens: {
               Home: '',
-              Spendings: 'spendings',
+              Spending: 'spending',
               Budget: 'budget',
               Simulation: 'simulation',
               Learn: 'learn'

@@ -8,7 +8,6 @@ const DiaryContext = React.createContext(null);
 const DiaryProvider = ({ children }) => {
   const [diary, setDiary] = useState({});
   const { user } = useAuth();
-  console.log(user)
 
   // Use a Ref to store the realm rather than the state because it is not
   // directly rendered, so updating it should not trigger a re-render as using
@@ -44,7 +43,6 @@ const DiaryProvider = ({ children }) => {
     }
 
     // open a realm to manage the diary of the user
-    console.log(config)
     Realm.open(config).then((diaryRealm) => {
       realmRef.current = diaryRealm;
 

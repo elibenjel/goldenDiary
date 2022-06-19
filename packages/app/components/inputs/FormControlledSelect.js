@@ -3,9 +3,11 @@ import { Box, Input, Menu, ChevronDownIcon } from "native-base";
 import { Pressable, Keyboard } from "react-native";
 import { FormControlledInput } from "./FormControlledInput";
 
+const SIZE = { xs : 10 };
+
 const Select = (props) => {
-  const { selected, setSelected, items, menuProps, ...other } = props;
-  console.log('items', items)
+  const { selected, setSelected, items, menuProps, size : sizeProp, ...other } = props;
+  let size = SIZE[sizeProp];
 
   return (
     <Menu {...menuProps} trigger={triggerProps => {
@@ -14,8 +16,9 @@ const Select = (props) => {
             <Input
               value={selected} editable={false}
               InputRightElement={
-                <ChevronDownIcon size="xs" color="black" mr="2" />
+                <ChevronDownIcon size={10} color="black" mr="2" />
               }
+              size={size}
               {...other}
             />
           </Pressable>
