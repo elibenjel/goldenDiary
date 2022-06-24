@@ -102,23 +102,7 @@ const SpendingHistoryProvider = ({ children }) => {
 
   const updateSpending = (spending, updator) => {
     const spendingRealm = realmRef.current;
-    const writeOK = Object.entries(updator).every(([property, updatedValue]) => {
-      return (
-        property in models.Spending.USER_CAN_UPDATE && // if user can update this property
-        models.Spending.USER_CAN_UPDATE[property](updatedValue)  // and did provide a valid new value
-      )
-    })
-    
-    if (!writeOK) {
-      console.log('You attempted an invalid update on a Spending object');
-      return;
-    }
-
-    spendingRealm.write(() => {
-      Object.entries(updator).forEach(([property, updatedValue]) => {
-        spending[property] = updatedValue;
-      });
-    });
+    models.Spending.update(spendingRealm, spending, updator)
   }
 
   const deleteSpending = (spending) => {

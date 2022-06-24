@@ -1,11 +1,12 @@
 import React from "react";
-import { Box, FormControl, HStack } from "native-base";
-import { MaterialIcons } from "../../assets/icons";
+import { Box, FormControl, HStack, WarningOutlineIcon } from "native-base";
+import { Icon } from "../Icon";
+import { Entypo } from "../../assets/icons";
 import { MAX_FIELD_WIDTH } from "./constants";
 
 export const FormControlledInput = (props) => {
-  const { label, labelLeftIcon, w, children, errorMessage = '', value, ...other } = props;
-  const isInvalid = errorMessage.length > 0;
+  const { label, labelLeftIcon, w, errorMessage = '', value, children, ...other } = props;
+  const isInvalid = value !== '' && errorMessage.length > 0;
 
   return (
     <FormControl isInvalid={isInvalid} w={w} {...other}>
@@ -16,7 +17,7 @@ export const FormControlledInput = (props) => {
       <Box alignItems="center" w={w} maxW={MAX_FIELD_WIDTH}>
         {children}
       </Box>
-      <FormControl.ErrorMessage leftIcon={<MaterialIcons name="cross" size="xs" color="error.200" />}>
+      <FormControl.ErrorMessage leftIcon={<WarningOutlineIcon size="xs" />}>
         {errorMessage}
       </FormControl.ErrorMessage>
     </FormControl>

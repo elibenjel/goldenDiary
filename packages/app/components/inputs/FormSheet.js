@@ -38,30 +38,26 @@ export const FormSheet = (props) => {
     onClose
   } = disclose;
 
-  const bottomInset = useKeyboardBottomInset();
-  const bottomAni = React.useRef(new Animated.Value(bottomInset)).current;
+  // const bottomInset = useKeyboardBottomInset();
+  // const bottomAni = React.useRef(new Animated.Value(bottomInset)).current;
 
-  React.useEffect(() => {
-    Animated.timing(bottomAni, {
-      toValue: bottomInset,
-      duration: 500,
-      useNativeDriver: false
-    }).start();
-  }, [bottomInset]);
+  // React.useEffect(() => {
+  //   Animated.timing(bottomAni, {
+  //     toValue: bottomInset,
+  //     duration: 500,
+  //     useNativeDriver: false
+  //   }).start();
+  // }, [bottomInset]);
 
   return (
     <Actionsheet isOpen={isOpen} onClose={onClose}>
-      <Animated.View w="100%" bottom={bottomAni}>
+      {/* <Animated.View w="100%" bottom={bottomAni}> */}
         <Actionsheet.Content pb="8">
           {
-            children.map((child, index) => (
-              <Actionsheet.Item key={child.key} disabled>
-                {child}
-              </Actionsheet.Item>
-            ))
+            children
           }
         </Actionsheet.Content>
-      </Animated.View>
+      {/* </Animated.View> */}
       </Actionsheet>
   );
 }

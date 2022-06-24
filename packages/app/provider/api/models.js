@@ -22,11 +22,32 @@ class Diary {
     this.defaultCurrency = '€';
   }
 
-  static USER_CAN_UPDATE = {
-    'spendingCategories': (newValue) => newValue.every((str) => str.length !== 0),
+  static isUpdateAllowed = (updator) => {
+    const rules = {
+      'spendingCategories': (newValue) => newValue.length !== 0,
+    };
+
+    return Object.entries(updator).every(([property, updatedValue]) => {
+      return (
+        property in rules && // if user can update this property
+        rules[property](updatedValue)  // and did provide a valid new value
+      )
+    });
   };
 
   static CURRENCIES = CURRENCIES;
+
+  static addSpendingCategory = (realm, diary, category) => {
+    const writeOK = this.isUpdateAllowed({ spendingCategories : category });
+    if (!writeOK) {
+      console.log(`Operation cancelled: cannot add ${category} to the list of spending categories`);
+      return;
+    }
+
+    realm.write(() => {
+      diary.spendingCategories.push(category);
+    });
+  }
 
   static schema = {
     name: 'Diary',
@@ -76,16 +97,40 @@ class Spending {
     this.where = where;
   }
 
-  static USER_CAN_UPDATE = {
-    'name': (newValue) => newValue.length !== 0,
-    'amount': (newValue) => newValue > 0,
-    'category': (newValue) => newValue.length !== 0,
-    'currency': (newValue) => newValue === '€' || newValue === '$',
-    'when': () => true,
-    'where': () => true
+  static CURRENCIES = CURRENCIES;
+
+  static isUpdateAllowed = (updator) => {
+    const rules = {
+      'name': (newValue) => newValue.length !== 0,
+      'amount': (newValue) => newValue > 0,
+      'category': (newValue) => newValue.length !== 0,
+      'currency': (newValue) => this.CURRENCIES.includes(newValue),
+      'when': () => true,
+      'where': (newValue) => newValue.length !== 0
+    };
+
+    return Object.entries(updator).every(([property, updatedValue]) => {
+      return (
+        property in rules && // if user can update this property
+        rules[property](updatedValue)  // and did provide a valid new value
+      )
+    });
   };
 
-  static CURRENCIES = CURRENCIES;
+
+  static update = (realm, spending, updator) => {
+    const writeOK = this.isUpdateAllowed(updator);
+    if (!writeOK) {
+      console.log('Operation cancelled: you attempted an invalid update on a Spending object');
+      return;
+    }
+
+    realm.write(() => {
+      Object.entries(updator).forEach(([property, updatedValue]) => {
+        spending[property] = updatedValue;
+      });
+    });
+  }
 
   static schema = {
     name: 'Spending',

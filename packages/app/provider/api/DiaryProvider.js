@@ -77,25 +77,30 @@ const DiaryProvider = ({ children }) => {
     };
   }, [user]);
 
-  const updateDiary = (updator) => {
-    const diaryRealm = realmRef.current;
-    const writeOK = Object.entries(updator).every(([property, updatedValue]) => {
-      return (
-        property in models.Spending.USER_CAN_UPDATE && // if user can update this property
-        models.Spending.USER_CAN_UPDATE[property](updatedValue)  // and did provide a valid new value
-      )
-    })
+  // const updateDiary = (updator) => {
+  //   const diaryRealm = realmRef.current;
+  //   const writeOK = Object.entries(updator).every(([property, updatedValue]) => {
+  //     return (
+  //       property in models.Diary.USER_CAN_UPDATE && // if user can update this property
+  //       models.Diary.USER_CAN_UPDATE[property](updatedValue)  // and did provide a valid new value
+  //     )
+  //   })
     
-    if (!writeOK) {
-      console.log('You attempted an invalid update on the Diary object');
-      return;
-    }
+  //   if (!writeOK) {
+  //     console.log('You attempted an invalid update on the Diary object');
+  //     return;
+  //   }
 
-    diaryRealm.write(() => {
-      Object.entries(updator).forEach(([property, updatedValue]) => {
-        diary[property] = updatedValue;
-      });
-    });
+  //   diaryRealm.write(() => {
+  //     Object.entries(updator).forEach(([property, updatedValue]) => {
+  //       diary[property] = updatedValue;
+  //     });
+  //   });
+  // }
+
+  const addSpendingCategory = (category) => {
+    const diaryRealm = realmRef.current;
+    models.Diary.addSpendingCategory(diaryRealm, diary, category);
   }
 
   const resetDiary = () => {
@@ -108,7 +113,7 @@ const DiaryProvider = ({ children }) => {
   return (
     <DiaryContext.Provider
       value={{
-        updateDiary,
+        addSpendingCategory,
         resetDiary,
         diary,
       }}
