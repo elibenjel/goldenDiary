@@ -71,6 +71,7 @@ const DiaryProvider = ({ children }) => {
       const diaryRealm = realmRef.current;
       if (diaryRealm) {
         diaryRealm.close();
+        console.log('Diary realm closed');
         realmRef.current = null;
         setDiary({});
       }

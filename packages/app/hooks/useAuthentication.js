@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import Realm from "realm";
-import { useApp } from '@realm/react';
+import { app } from "../realmApp";
 
 export let AuthState;
 
@@ -12,7 +12,6 @@ export let AuthState;
 })(AuthState || (AuthState = {}));
 
 export const useAuthentication = () => {
-  const app = useApp();
   const [authState, setAuthState] = useState(AuthState.None);
 
   const handleLogin = useCallback(async ({ email, password }) => {

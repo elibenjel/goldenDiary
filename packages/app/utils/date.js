@@ -15,3 +15,29 @@ export const fromDateToDict = (date) => ({
     return this.toDate().toLocaleDateString();
   }
 });
+
+const leftZeroPadding = (n) => `${n < 10 ? '0' : ''}${n}`;
+
+export const getDay = (date) => {
+  return leftZeroPadding(date.getDate());
+}
+
+export const getMonth = (date) => {
+  return leftZeroPadding(date.getMonth() + 1);
+}
+
+export const getYear = (date) => {
+  return date.getFullYear();
+}
+
+export const getMonthlyPeriod = (date = new Date()) => {
+  const start = new Date(getYear(date), getMonth(date), 1);
+  const end = new Date(getYear(date), getMonth(date) + 1, 0);
+  return { start, end };
+}
+
+export const getYearlyPeriod = (date = new Date()) => {
+  const start = new Date(getYear(date), 0, 1);
+  const end = new Date(getYear(date), 12, 1);
+  return { start, end };
+}

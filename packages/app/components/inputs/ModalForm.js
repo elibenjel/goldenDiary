@@ -1,61 +1,23 @@
-import React, { useState, useRef } from "react";
-import { Box, Modal, Button, AlertDialog } from "native-base";
+import React, { useState } from "react";
+import { Box, Modal, Button } from "native-base";
 import { FormControlledTextField } from "./FormControlledTextField";
-import { useValidator } from "./useValidator";
-
-export const useModalState = () => {
-  const [show, setShow] = useState(false);
-  return {
-    showModal : show,
-    openModal: () => setShow(true),
-    closeModal: () => setShow(false)
-  }
-}
-
-export const ModalConfirmation = (props) => {
-  const { show, close, confirm, header, body, confirmLabel = 'Confirmer' } = props;
-  const cancelRef = useRef(null);
-
-  return (
-    <AlertDialog leastDestructiveRef={cancelRef} isOpen={show} onClose={close}>
-      <AlertDialog.Content>
-        <AlertDialog.CloseButton />
-        <AlertDialog.Header>{header}</AlertDialog.Header>
-        <AlertDialog.Body>
-          {body}
-        </AlertDialog.Body>
-        <AlertDialog.Footer>
-          <Button.Group space={2}>
-            <Button variant="unstyled" colorScheme="coolGray" onPress={close} ref={cancelRef}>
-              Annuler
-            </Button>
-            <Button colorScheme="danger" onPress={() => {
-              confirm();
-              close();
-            }}>
-              {confirmLabel}
-            </Button>
-          </Button.Group>
-        </AlertDialog.Footer>
-      </AlertDialog.Content>
-    </AlertDialog>
-  )
-}
+import { useValidator } from "../../hooks/useValidator";
 
 export const ModalForm = (props) => {
-  const { show, close, header, submit, placement = 'center', children } = props;
+  const { show, close, header, submit, submitLabel = 'Confirmer', placement = 'center', children } = props;
   const [fieldWidth, setFieldWidth] = useState(null);
+  const margins = 30;
   const onLayout = (event) => {
     const width = event.nativeEvent.layout.width;
-    setFieldWidth(width);
+    setFieldWidth(width - margins);
   }
 
   const oneChild = 'props' in children;
   return (
     <Modal isOpen={show} onClose={close}>
-        <Modal.Content {...styles[placement]} alignItems="center">
+        <Modal.Content {...styles[placement]} alignItems="center" onLayout={onLayout}>
           <Modal.CloseButton />
-          <Modal.Header onLayout={onLayout}>{header}</Modal.Header>
+          <Modal.Header>{header}</Modal.Header>
           <Modal.Body>
             {
               oneChild ?
@@ -80,7 +42,7 @@ export const ModalForm = (props) => {
                 submit();
                 close();
               }}>
-                Confirmer
+                {submitLabel}
               </Button>
             </Button.Group>
           </Modal.Footer>

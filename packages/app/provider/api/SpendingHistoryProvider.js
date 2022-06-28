@@ -3,18 +3,80 @@ import Realm from "realm";
 import { models } from "./models";
 import { useAuth } from "../authentication";
 import { useDiary } from "./DiaryProvider";
+import { getMonthlyPeriod, getYearlyPeriod } from "../../utils/date";
 
 const SpendingHistoryContext = React.createContext(null);
+export const POSSIBLE_FILTER_VALUES = ['month', 'year'];
+export const POSSIBLE_SORT_VALUES = ['name', 'date', 'amount'];
+export const POSSIBLE_GROUP_VALUES = ['category'];
 
 const SpendingHistoryProvider = ({ children }) => {
-  const [spendingHistory, setSpendingHistory] = useState([]);
-  const [options, setOptions] = useState({
-    sortBy: 'when',
-    descending: true,
-    groupBy: null
-  });
-  const { user } = useAuth();
   const { diary } = useDiary();
+  const { user } = useAuth();
+  const [rawSpendingHistory, setRawSpendingHistory] = useState([]);
+  const [spendingHistory, setSpendingHistory] = useState([]);
+  const [search, setSearch] = useState('');
+  const [options, setOptions] = useState({
+    filter: null,
+    sort: 'name',
+    descending: true,
+    group: null
+  });
+
+  const sorted = (descriptor, descending = false, applyTo = rawSpendingHistory) => {
+
+    if (descriptor === null) return;
+    if (!POSSIBLE_SORT_VALUES.includes(descriptor)) {
+      console.log('You attempted to sort the spending by an invalid descriptor: ', descriptor);
+      return;
+    }
+
+    const correspondance = {
+      name: 'name',
+      date: 'when',
+      amount: 'amount'
+    }
+
+    setOptions(current => ({
+      ...current,
+      sort: descriptor,
+      descending
+    }));
+
+    const result = applyTo.sorted && applyTo.sorted(correspondance[descriptor], descending);
+    result && setSpendingHistory(result);
+    return result;
+  }
+
+  const filtered = (descriptor, applyTo = rawSpendingHistory) => {
+    
+    if (descriptor === null) return;
+    if (!POSSIBLE_FILTER_VALUES.includes(descriptor)) {
+      console.log('You attempted to filter the spending with an invalid descriptor: ', descriptor);
+      return;
+    }
+    
+    const { start : startOfMonth, end : endOfMonth } = getMonthlyPeriod();
+    const { start : startOfYear, end : endOfYear } = getYearlyPeriod();
+    const predicates = {
+      month: ['when >= $0 && when <= $1', startOfMonth, endOfMonth],
+      year: ['when >= $0 && when <= $1', startOfYear, endOfYear]
+    }
+
+
+    setOptions(current => ({
+      ...current,
+      filter: descriptor
+    }));
+
+    const result = applyTo.filtered && applyTo.filtered(predicates[descriptor]);
+    result && setSpendingHistory(result);
+    return result;
+  }
+
+  const searchFor = (value) => {
+    setSearch(value);
+  }
 
   // Use a Ref to store the realm rather than the state because it is not
   // directly rendered, so updating it should not trigger a re-render as using
@@ -53,24 +115,25 @@ const SpendingHistoryProvider = ({ children }) => {
     Realm.open(config).then((spendingRealm) => {
       realmRef.current = spendingRealm;
 
-      console.log('Realm open')
-      const sortedSpending = spendingRealm.objects("Spending").sorted(options.sortBy, options.descending);
-      console.log(sortedSpending)
+      const spending = spendingRealm.objects("Spending");
 
-      setSpendingHistory([...sortedSpending]);
-      sortedSpending.addListener(() => {
-        setSpendingHistory([...sortedSpending]);
+      setRawSpendingHistory(spending);
+      spending.addListener(() => {
+        setRawSpendingHistory(spending);
       });
-      console.log(spendingHistory)
-    });
 
+      const sortedSpending = sorted(options.sort, options.descending, spending);
+      filtered(options.filter, sortedSpending);
+    });
+    
     return () => {
       // cleanup function
       const spendingRealm = realmRef.current;
       if (spendingRealm) {
         spendingRealm.close();
+        console.log('SpendingHistory Realm closed')
         realmRef.current = null;
-        setSpendingHistory([]);
+        setRawSpendingHistory([]);
       }
     };
   }, [user]);
@@ -109,8 +172,8 @@ const SpendingHistoryProvider = ({ children }) => {
     const spendingRealm = realmRef.current;
     spendingRealm.write(() => {
       spendingRealm.delete(spending);
-      const sortedSpending = spendingRealm.objects("Spending").sorted(options.sortBy, options.descending);
-      setSpendingHistory([...sortedSpending]);
+      const newSpending = spendingRealm.objects("Spending");
+      setRawSpendingHistory([...newSpending]);
     });
   }
 
@@ -124,6 +187,11 @@ const SpendingHistoryProvider = ({ children }) => {
         updateSpending,
         deleteSpending,
         spendingHistory,
+        sorted,
+        filtered,
+        options,
+        search,
+        searchFor
       }}
     >
       {children}
@@ -136,7 +204,7 @@ const SpendingHistoryProvider = ({ children }) => {
 // create, update, and delete the spending in the history.
 const useSpendingHistory = () => {
   const spendingHistory = useContext(SpendingHistoryContext);
-  if (spendingHistory == null) {
+  if (spendingHistory === null) {
     throw new Error("useSpendingHistory() called outside of a SpendingHistoryProvider?"); // an alert is not placed because this is an error for the developer not the user
   }
   return spendingHistory;

@@ -71,12 +71,12 @@ const MyDatePicker = (props) => {
 }
 
 export const FormControlledDatePicker = (props) => {
-  const { label, state, labelLeftIcon, errorMessage, width, ...datePickerProps } = props;
+  const { label, state, labelLeftIcon, errorMessage, ...datePickerProps } = props;
   const [date, setDate] = state;
   return (
     <FormControlledInput
       label={label} labelLeftIcon={labelLeftIcon}
-      _ios={{ mt : 1 }} _web={{ mt : -1}} w={width} errorMessage={errorMessage} value={date}
+      _ios={{ mt : 1 }} _web={{ mt : -1}} w={'100%'} errorMessage={errorMessage} value={date}
     >
       <MyDatePicker date={date} onChange={(date) => setDate(date)} {...datePickerProps} />
     </FormControlledInput>

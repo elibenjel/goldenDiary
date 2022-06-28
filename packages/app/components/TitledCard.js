@@ -42,7 +42,7 @@ export const LargeTitledCard = (props) => {
 export const MediumTitledCard = (props) => {
   const { title, subtitle, footer, HeaderRight, TopRightCorner, rightContent, children } = props;
   return (
-    <Box w="80" rounded="lg" overflow="hidden" borderWidth="1"
+    <Box w="100%" rounded="lg" overflow="hidden" borderWidth="1"
       _dark={{
         borderColor: "coolGray.600",
         backgroundColor: "gray.700"

@@ -1,35 +1,29 @@
 import { Link as SolitoLink } from 'solito/link';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
-  HStack,
   VStack,
   Box,
-  IconButton,
-  useDisclose,
-  Divider,
-  Button,
   Pressable
 } from 'native-base';
-import { useWindowDimensions } from 'react-native';
 
-import { Ionicons, Entypo, AntDesign } from '../../assets/icons';
+
+import { Entypo, AntDesign } from '../../assets/icons';
 import { Icon } from '../../components/Icon';
 import { SmallTitledCard, TopLayout, TextPrimary, MediumTitledCard } from '../../components';
-import { useSetHeaderRightLayoutEffect } from '../../provider/navigation';
 import {
   FormControlledTextField,
   FormControlledSelect,
   FormControlledDatePicker,
-  ModalUpdater,
-  FormSheet,
-  ModalForm,
-  useModalState,
-  ModalConfirmation
+  ModalConfirmation,
+  ModalForm
 } from '../../components/inputs';
-import { isNonNegativeValue } from '../../utils/validators';
+import { useModalState, useValidator } from '../../hooks';
 import { SpendingHistoryProvider, useSpendingHistory } from '../../provider/api';
 import { useDiary } from '../../provider/api';
-import { useValidator } from '../../components/inputs/useValidator';
+import { useSetHeaderRightLayoutEffect } from '../../provider/navigation';
+import { isNonNegativeValue } from '../../utils/validators';
+import { getDay, getMonth, getYear } from '../../utils/date';
+import { SearchBar } from '../../components/inputs/SearchBar';
 
 const SpendingForm = (props) => {
   const { spendingRef, modalState } = props;
@@ -94,10 +88,11 @@ const SpendingForm = (props) => {
   return (
     <Box>
       <ModalForm
-        header="Ajouter une nouvelle catégorie de dépense"
+        header={spendingRef.current ? 'Modifier la dépense ?' : 'Nouvelle dépense'}
         show={showModal}
         close={onClose}
         submit={valid && submit}
+        submitLabel={spendingRef.current ? 'Modifier' : 'Ajouter'}
       >
         <FormControlledTextField
           key="nameField"
@@ -125,10 +120,14 @@ const SpendingForm = (props) => {
         />
         <FormControlledDatePicker key="datePicker" label="Date" state={[date, setDate]} width={'100%'} />
       </ModalForm>
-      <AddSpendingCategoryModal
-        submitSpendingCategory={submitSpendingCategory}
-        modalState={addSpendingCategoryModalState}
-      />
+      {
+        addSpendingCategoryModalState.showModal ?
+        <AddSpendingCategoryModal
+          submitSpendingCategory={submitSpendingCategory}
+          modalState={addSpendingCategoryModalState}
+        />
+        : null
+      }
     </Box>
   );
 }
@@ -149,7 +148,7 @@ const AddSpendingCategoryModal = (props) => {
 
   return (
     <ModalForm
-      header="Ajouter une nouvelle catégorie de dépense"
+      header="Nouvelle catégorie de dépense"
       show={showModal}
       close={closeModal}
       submit={valid && (() => submitSpendingCategory(category))}
@@ -164,11 +163,13 @@ const AddSpendingCategoryModal = (props) => {
 }
 
 const SpendingManager = () => {
-  const { spendingHistory, deleteSpending } = useSpendingHistory();
+  const {
+    spendingHistory,
+    deleteSpending
+  } = useSpendingHistory();
 
   const spendingRef = useRef(null);
   const deleteSpendingRef = useRef(() => null);
-  const [period, setPeriod] = useState(null);
 
   useSetHeaderRightLayoutEffect();
   const modalState = useModalState();
@@ -176,31 +177,22 @@ const SpendingManager = () => {
 
   return (
       <TopLayout>
-        <VStack flex={1} my="4" alignItems="center" justifyContent="space-between" >
-          <VStack flex={1} alignItems="center" space="md">
+        <VStack flex={1} w='90%' my="4" alignItems="center" justifyContent="space-between" >
+          <VStack w='100%' alignItems="center" space="md">
+            <SearchBar placeholder="Rechercher" />
             {
               spendingHistory.length === 0 ?
               <TextPrimary fontSize="lg">Aucune dépenses trouvées</TextPrimary>
               : 
-              // <TextPrimary fontSize="lg">Aucune dépenses trouvées</TextPrimary>
               spendingHistory.map((spending) => {
                 return (
-                  <Pressable key={spending._id} onPress={() => {
+                  <Pressable w='90%' key={spending._id} onPress={() => {
                     spendingRef.current = spending;
                     modalState.openModal();
                   }}>
                     <MediumTitledCard
                       title={spending.name} subtitle={spending.category}
-                      footer={`${spending.when.getDate()}-${spending.when.getMonth()+1}-${spending.when.getFullYear()}`}
-                      // HeaderRight={
-                      //   <Icon
-                      //     family={Ionicons}
-                      //     name="pencil"
-                      //     size="xs"
-                      //     color="black"
-                      //     onPress={() => null} // go to update-this-spending screen
-                      //   />
-                      // }
+                      footer={`${getDay(spending.when)}-${getMonth(spending.when)}-${getYear(spending.when)}`}
                       TopRightCorner={
                         <Icon
                           family={Entypo}
@@ -210,7 +202,7 @@ const SpendingManager = () => {
                           onPress={() => {
                             deleteSpendingRef.current = () => deleteSpending(spending);
                             deleteModalState.openModal();
-                          }} // delete this spending (with confirmation)
+                          }}
                         />
                       }
                     >
