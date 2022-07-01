@@ -41,3 +41,23 @@ export const getYearlyPeriod = (date = new Date()) => {
   const end = new Date(getYear(date), 12, 1);
   return { start, end };
 }
+
+export const getMonthString = (date) => {
+  const month = [
+    'Janvier',
+    'Février',
+    'Mars',
+    'Avril',
+    'Mai',
+    'Juin',
+    'Juillet',
+    'Aout',
+    'Septembre',
+    'Octobre',
+    'Novembre',
+    'Décembre'
+  ];
+
+  const i = date.getMonth();
+  return month[i];
+}

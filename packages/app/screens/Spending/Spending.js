@@ -9,7 +9,7 @@ import {
 
 import { Entypo, AntDesign } from '../../assets/icons';
 import { Icon } from '../../components/Icon';
-import { SmallTitledCard, TopLayout, TextPrimary, MediumTitledCard } from '../../components';
+import { SmallTitledCard, TopLayout, TextPrimary, MediumTitledCard, HeaderText } from '../../components';
 import {
   FormControlledTextField,
   FormControlledSelect,
@@ -184,31 +184,40 @@ const SpendingManager = () => {
               spendingHistory.length === 0 ?
               <TextPrimary fontSize="lg">Aucune dépenses trouvées</TextPrimary>
               : 
-              spendingHistory.map((spending) => {
+              Object.entries(spendingHistory).map(([group, spending]) => {
                 return (
-                  <Pressable w='90%' key={spending._id} onPress={() => {
-                    spendingRef.current = spending;
-                    modalState.openModal();
-                  }}>
-                    <MediumTitledCard
-                      title={spending.name} subtitle={spending.category}
-                      footer={`${getDay(spending.when)}-${getMonth(spending.when)}-${getYear(spending.when)}`}
-                      TopRightCorner={
-                        <Icon
-                          family={Entypo}
-                          name="cross"
-                          size="xs"
-                          color="black"
-                          onPress={() => {
-                            deleteSpendingRef.current = () => deleteSpending(spending);
-                            deleteModalState.openModal();
-                          }}
-                        />
-                      }
-                    >
-                      <TextPrimary fontSize="lg">{spending.amount}€</TextPrimary>
-                    </MediumTitledCard>
-                  </Pressable>
+                  <VStack key={group} w="100%">
+                    <HeaderText>{group}</HeaderText>
+                    {
+                      spending.map(sp => {
+                        return (
+                          <Pressable w='90%' key={sp._id} onPress={() => {
+                            spendingRef.current = sp;
+                            modalState.openModal();
+                          }}>
+                            <MediumTitledCard
+                              title={sp.name} subtitle={sp.category}
+                              footer={`${getDay(sp.when)}-${getMonth(sp.when)}-${getYear(sp.when)}`}
+                              TopRightCorner={
+                                <Icon
+                                  family={Entypo}
+                                  name="cross"
+                                  size="xs"
+                                  color="black"
+                                  onPress={() => {
+                                    deleteSpendingRef.current = () => deleteSpending(sp);
+                                    deleteModalState.openModal();
+                                  }}
+                                />
+                              }
+                            >
+                              <TextPrimary fontSize="lg">{sp.amount}€</TextPrimary>
+                            </MediumTitledCard>
+                          </Pressable>
+                        )
+                      })
+                    }
+                  </VStack>
                 )
               })
             }

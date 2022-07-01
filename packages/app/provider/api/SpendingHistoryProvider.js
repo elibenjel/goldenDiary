@@ -3,75 +3,104 @@ import Realm from "realm";
 import { models } from "./models";
 import { useAuth } from "../authentication";
 import { useDiary } from "./DiaryProvider";
-import { getMonthlyPeriod, getYearlyPeriod } from "../../utils/date";
+import { getMonthlyPeriod, getMonthString, getYear, getYearlyPeriod } from "../../utils/date";
 
 const SpendingHistoryContext = React.createContext(null);
-export const POSSIBLE_FILTER_VALUES = ['month', 'year'];
+
+export const POSSIBLE_FILTER_VALUES = ['category', 'period'];
 export const POSSIBLE_SORT_VALUES = ['name', 'date', 'amount'];
-export const POSSIBLE_GROUP_VALUES = ['category'];
+export const POSSIBLE_GROUP_VALUES = ['category', 'month'];
+
+const sorted = (applyTo, descriptor, descending = false) => {
+  console.log(applyTo)
+  const correspondance = {
+    name: 'name',
+    date: 'when',
+    amount: 'amount'
+  }
+
+  if (!applyTo.sorted) {
+    return applyTo;
+  }
+
+  return applyTo.sorted(correspondance[descriptor], descending);
+}
+
+const filtered = (applyTo, descriptor) => {
+  // const { start : startOfMonth, end : endOfMonth } = getMonthlyPeriod();
+  // const { start : startOfYear, end : endOfYear } = getYearlyPeriod();
+  // const predicates = {
+  //   month: ['when >= $0 && when <= $1', startOfMonth, endOfMonth],
+  //   year: ['when >= $0 && when <= $1', startOfYear, endOfYear]
+  // }
+
+  if (!applyTo.filtered) {
+    return applyTo;
+  }
+
+  return applyTo;
+}
+
+const grouped = (applyTo, group) => {
+  if (!applyTo.filtered) {
+    return { __ : applyTo };
+  }
+
+  const correspondance = {
+    category: (obj) => obj.category,
+    month: (obj) => `${getMonthString(obj.when)} ${getYear(obj.when)}`
+  }
+
+  const whichGroup = correspondance[group];
+  const result = {};
+
+  applyTo.forEach(obj => {
+    const objGroup = whichGroup(obj);
+    if (!(objGroup in result)) {
+      result[objGroup] = [];
+    }
+
+    result[objGroup].push(obj);
+  })
+
+  return result;
+}
 
 const SpendingHistoryProvider = ({ children }) => {
   const { diary } = useDiary();
   const { user } = useAuth();
-  const [rawSpendingHistory, setRawSpendingHistory] = useState([]);
-  const [spendingHistory, setSpendingHistory] = useState([]);
+  const rawSpending = useRef([]);
+  const [spendingHistory, setSpendingHistory] = useState({});
   const [search, setSearch] = useState('');
   const [options, setOptions] = useState({
     filter: null,
-    sort: 'name',
+    sort: 'date',
     descending: true,
-    group: null
+    group: 'month'
   });
 
-  const sorted = (descriptor, descending = false, applyTo = rawSpendingHistory) => {
-
-    if (descriptor === null) return;
-    if (!POSSIBLE_SORT_VALUES.includes(descriptor)) {
-      console.log('You attempted to sort the spending by an invalid descriptor: ', descriptor);
+  const formatSpendingHistory = (newOptions) => {
+    if (!POSSIBLE_SORT_VALUES.includes(newOptions.sort)) {
+      console.log('You attempted to sort the spending by an invalid descriptor: ', newOptions.sort);
       return;
     }
 
-    const correspondance = {
-      name: 'name',
-      date: 'when',
-      amount: 'amount'
-    }
-
-    setOptions(current => ({
-      ...current,
-      sort: descriptor,
-      descending
-    }));
-
-    const result = applyTo.sorted && applyTo.sorted(correspondance[descriptor], descending);
-    result && setSpendingHistory(result);
-    return result;
-  }
-
-  const filtered = (descriptor, applyTo = rawSpendingHistory) => {
-    
-    if (descriptor === null) return;
-    if (!POSSIBLE_FILTER_VALUES.includes(descriptor)) {
-      console.log('You attempted to filter the spending with an invalid descriptor: ', descriptor);
+    if (newOptions.filter !== null && !POSSIBLE_FILTER_VALUES.includes(newOptions.filter)) {
+      console.log('You attempted to filter the spending by an invalid descriptor: ', newOptions.filter);
       return;
     }
-    
-    const { start : startOfMonth, end : endOfMonth } = getMonthlyPeriod();
-    const { start : startOfYear, end : endOfYear } = getYearlyPeriod();
-    const predicates = {
-      month: ['when >= $0 && when <= $1', startOfMonth, endOfMonth],
-      year: ['when >= $0 && when <= $1', startOfYear, endOfYear]
+
+    if (!POSSIBLE_GROUP_VALUES.includes(newOptions.group)) {
+      console.log('You attempted to group the spending by an invalid descriptor: ', newOptions.group);
+      return;
     }
 
+    setOptions(newOptions);
+    const sortedSpending = sorted(rawSpending.current, newOptions.sort, newOptions.descending);
+    const filteredSpending = filtered(sortedSpending, newOptions.filter)
+    const result = grouped(filteredSpending, newOptions.group);
 
-    setOptions(current => ({
-      ...current,
-      filter: descriptor
-    }));
-
-    const result = applyTo.filtered && applyTo.filtered(predicates[descriptor]);
-    result && setSpendingHistory(result);
-    return result;
+    setSpendingHistory(result);
   }
 
   const searchFor = (value) => {
@@ -115,15 +144,13 @@ const SpendingHistoryProvider = ({ children }) => {
     Realm.open(config).then((spendingRealm) => {
       realmRef.current = spendingRealm;
 
-      const spending = spendingRealm.objects("Spending");
+      rawSpending.current = spendingRealm.objects("Spending");
 
-      setRawSpendingHistory(spending);
-      spending.addListener(() => {
-        setRawSpendingHistory(spending);
-      });
+      // rawSpending.current.addListener(() => {
+      //   formatSpendingHistory(options);
+      // });
 
-      const sortedSpending = sorted(options.sort, options.descending, spending);
-      filtered(options.filter, sortedSpending);
+      formatSpendingHistory(options);
     });
     
     return () => {
@@ -133,7 +160,8 @@ const SpendingHistoryProvider = ({ children }) => {
         spendingRealm.close();
         console.log('SpendingHistory Realm closed')
         realmRef.current = null;
-        setRawSpendingHistory([]);
+        rawSpending.current = [];
+        setSpendingHistory({});
       }
     };
   }, [user]);
@@ -161,19 +189,21 @@ const SpendingHistoryProvider = ({ children }) => {
         })
       );
     });
+    formatSpendingHistory(options);
   };
 
   const updateSpending = (spending, updator) => {
     const spendingRealm = realmRef.current;
     models.Spending.update(spendingRealm, spending, updator)
+    formatSpendingHistory(options);
   }
 
   const deleteSpending = (spending) => {
     const spendingRealm = realmRef.current;
     spendingRealm.write(() => {
       spendingRealm.delete(spending);
-      const newSpending = spendingRealm.objects("Spending");
-      setRawSpendingHistory([...newSpending]);
+      rawSpending.current = spendingRealm.objects("Spending");
+      formatSpendingHistory(options);
     });
   }
 
@@ -187,8 +217,7 @@ const SpendingHistoryProvider = ({ children }) => {
         updateSpending,
         deleteSpending,
         spendingHistory,
-        sorted,
-        filtered,
+        formatSpendingHistory,
         options,
         search,
         searchFor

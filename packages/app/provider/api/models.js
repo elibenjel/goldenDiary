@@ -145,6 +145,7 @@ class Spending {
       currency: 'string?',
       when: 'date?',
       where: 'string?',
+      bill: 'string?'
     },
   };
 }
