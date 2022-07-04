@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 import Realm from "realm";
-import { models } from "./models";
+import { models, MODELS_VERSION } from "./models";
 import { useAuth } from "../authentication";
 import { useDiary } from "./DiaryProvider";
 import { getMonthlyPeriod, getMonthString, getYear, getYearlyPeriod } from "../../utils/date";
@@ -12,7 +12,6 @@ export const POSSIBLE_SORT_VALUES = ['name', 'date', 'amount'];
 export const POSSIBLE_GROUP_VALUES = ['category', 'month'];
 
 const sorted = (applyTo, descriptor, descending = false) => {
-  console.log(applyTo)
   const correspondance = {
     name: 'name',
     date: 'when',
@@ -119,6 +118,7 @@ const SpendingHistoryProvider = ({ children }) => {
       // if no user is logged in : usage with a realm in local only mode
       config = {
         path: 'localOnly.realm',
+        schemaVersion: MODELS_VERSION,
         schema: Object.values(models).map(m => m.schema),
       };
     } else {
@@ -130,6 +130,7 @@ const SpendingHistoryProvider = ({ children }) => {
       };
       config = {
         path: 'sync.realm',
+        schemaVersion: MODELS_VERSION,
         schema: Object.values(models).map(m => m.schema),
         sync: {
           user: user,
@@ -152,7 +153,7 @@ const SpendingHistoryProvider = ({ children }) => {
 
       formatSpendingHistory(options);
     });
-    
+
     return () => {
       // cleanup function
       const spendingRealm = realmRef.current;

@@ -2,6 +2,7 @@
 import { ObjectId } from "bson";
 import { getCurrentDate } from "../../utils/date";
 
+export const MODELS_VERSION = 3;
 const CURRENCIES = ['€', '$'];
 
 class Diary {
@@ -145,7 +146,7 @@ class Spending {
       currency: 'string?',
       when: 'date?',
       where: 'string?',
-      bill: 'string?'
+      bills: 'string[]'
     },
   };
 }

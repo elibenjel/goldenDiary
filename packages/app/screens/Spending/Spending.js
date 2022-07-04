@@ -3,7 +3,10 @@ import React, { useRef, useState } from 'react';
 import {
   VStack,
   Box,
-  Pressable
+  Pressable,
+  Image,
+  HStack,
+  Tooltip
 } from 'native-base';
 
 
@@ -14,6 +17,7 @@ import {
   FormControlledTextField,
   FormControlledSelect,
   FormControlledDatePicker,
+  FormControlledImage,
   ModalConfirmation,
   ModalForm
 } from '../../components/inputs';
@@ -24,6 +28,7 @@ import { useSetHeaderRightLayoutEffect } from '../../provider/navigation';
 import { isNonNegativeValue } from '../../utils/validators';
 import { getDay, getMonth, getYear } from '../../utils/date';
 import { SearchBar } from '../../components/inputs/SearchBar';
+import { CameraProvider, useCamera } from '../../provider/camera';
 
 const SpendingForm = (props) => {
   const { spendingRef, modalState } = props;
@@ -33,10 +38,12 @@ const SpendingForm = (props) => {
   const [category, setCategory] = useState(spendingRef.current?.category || '');
   const [date, setDate] = useState(spendingRef.current?.when || new Date());
   const [amount, setAmount] = useState(spendingRef.current?.amount ? `${spendingRef.current.amount}` : '');
+  const [bills, setBills] = useState(spendingRef.current?.bills || []);
   
   const { createSpending, updateSpending } = useSpendingHistory();
   const { diary, addSpendingCategory } = useDiary();
   const addSpendingCategoryModalState = useModalState();
+  const { renderCameraTrigger, showCamera } = useCamera();
 
   const { valid, messages } = useValidator({
     name: {
@@ -89,7 +96,7 @@ const SpendingForm = (props) => {
     <Box>
       <ModalForm
         header={spendingRef.current ? 'Modifier la dépense ?' : 'Nouvelle dépense'}
-        show={showModal}
+        show={showModal && !showCamera}
         close={onClose}
         submit={valid && submit}
         submitLabel={spendingRef.current ? 'Modifier' : 'Ajouter'}
@@ -119,6 +126,9 @@ const SpendingForm = (props) => {
           width={'100%'}
         />
         <FormControlledDatePicker key="datePicker" label="Date" state={[date, setDate]} width={'100%'} />
+        <FormControlledImage key="bills" label="Factures" uris={bills}>
+          {renderCameraTrigger()}
+        </FormControlledImage> 
       </ModalForm>
       {
         addSpendingCategoryModalState.showModal ?
@@ -174,6 +184,7 @@ const SpendingManager = () => {
   useSetHeaderRightLayoutEffect();
   const modalState = useModalState();
   const deleteModalState = useModalState();
+  const { renderCamera } = useCamera();
 
   return (
       <TopLayout>
@@ -221,21 +232,6 @@ const SpendingManager = () => {
                 )
               })
             }
-            {/* <SmallTitledCard
-              title="Food" subtitle={'<400€'}
-              HeaderRight={<Icon family={Ionicons} name="pencil" size="10" color="black" />}
-              TopRightCorner={<Icon family={Entypo} name="cross" size="10" color="black" />}
-            >
-              <TextPrimary fontSize="lg">300€</TextPrimary>
-            </SmallTitledCard>
-            <MediumTitledCard
-              title="Food" subtitle={'<400€'}
-              HeaderRight={<Icon family={Ionicons} name="pencil" size="10" color="black" />}
-              TopRightCorner={<Icon family={Entypo} name="cross" size="10" color="black" />}
-              footer="05/01/2022" rightContent={<Icon family={Ionicons} name="pencil" size="10" color="black" />}
-            >
-              <TextPrimary fontSize="lg">300€</TextPrimary>
-            </MediumTitledCard> */}
           </VStack>
           <Icon onPress={modalState.openModal} family={Entypo} name='add-to-list' size="xs" color="black" />
         </VStack>
@@ -254,14 +250,17 @@ const SpendingManager = () => {
             confirmLabel="Supprimer"
           />
         }
+        {renderCamera()}
       </TopLayout>
   )
 }
 
 export const Spending = (props) => {
   return (
-    <SpendingHistoryProvider>
-      <SpendingManager {...props} />
-    </SpendingHistoryProvider>
+    <CameraProvider>
+      <SpendingHistoryProvider>
+        <SpendingManager {...props} />
+      </SpendingHistoryProvider>
+    </CameraProvider>
   )
 }

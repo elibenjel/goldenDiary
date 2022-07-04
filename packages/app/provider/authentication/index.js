@@ -11,30 +11,37 @@ const AuthContext = React.createContext(null);
 // use the useAuth() hook to access the auth value.
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(app.currentUser);
-  const realmRef = useRef(null);
-  const [userData, setUserData] = useState({});
+  // const realmRef = useRef(null);
+  // const [userData, setUserData] = useState({});
 
-  useEffect(() => {
-    if (!user) {
-      return;
-    }
+  // useEffect(() => {
+  //   if (!user) {
+  //     return;
+  //   }
 
-    // can open a realm here to get any user related data
-    Realm.open(config).then((userRealm) => {
-      realmRef.current = userRealm;
-      // setUserData here
-    });
+  //   const config = {
+  //     sync: {
+  //       user,
+  //       partitionValue: `user=${user.id}`,
+  //     },
+  //   };
 
-    return () => {
-      // cleanup function
-      const userRealm = realmRef.current;
-      if (userRealm) {
-        userRealm.close();
-        realmRef.current = null;
-        setUserData({}); // set user data to an empty object (this prevents the object from staying in state on logout)
-      }
-    };
-  }, [user]);
+  //   // can open a realm here to get any user related data
+  //   Realm.open(config).then((userRealm) => {
+  //     realmRef.current = userRealm;
+  //     // setUserData here
+  //   });
+
+  //   return () => {
+  //     // cleanup function
+  //     const userRealm = realmRef.current;
+  //     if (userRealm) {
+  //       userRealm.close();
+  //       realmRef.current = null;
+  //       setUserData({}); // set user data to an empty object (this prevents the object from staying in state on logout)
+  //     }
+  //   };
+  // }, [user]);
 
   // The signIn function takes an email and password and uses the
   // emailPassword authentication provider to log in.
@@ -68,7 +75,7 @@ const AuthProvider = ({ children }) => {
         signIn,
         signOut,
         user,
-        userData,
+        // userData,
       }}
     >
       {children}

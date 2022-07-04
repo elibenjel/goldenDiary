@@ -1,19 +1,32 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
+import { Menu, Pressable } from 'native-base';
 // import * as Linking from 'expo-linking';
-import { useMemo } from 'react';
-import {
-  Button
-} from 'native-base';
+
+import { FontAwesome } from '../../assets/icons';
+import { Icon } from '../../components/Icon';
+
+const HeaderRight = () => {
+  return (
+    <Menu defaultIsOpen={false} placement="left" trigger={triggerProps => {
+      return (
+        <Pressable {...triggerProps}>
+          <Icon family={FontAwesome} name="user" size="xs" />
+        </Pressable>
+      )
+    }}>
+      <Menu.Item>S'identifier</Menu.Item>
+      <Menu.Item>S'inscrire</Menu.Item>
+    </Menu>
+  )
+}
 
 export const useSetHeaderRightLayoutEffect = () => {
   const navigation = useNavigation();
   React.useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <Button onPress={() => null} children="User" />
-      ),
+      headerRight: HeaderRight,
     });
   }, [navigation]);
 }

@@ -1,8 +1,5 @@
 import React from "react";
 import { Box, FormControl, HStack, WarningOutlineIcon } from "native-base";
-import { Icon } from "../Icon";
-import { Entypo } from "../../assets/icons";
-import { MAX_FIELD_WIDTH } from "./constants";
 
 export const FormControlledInput = (props) => {
   const { label, labelLeftIcon, errorMessage = '', value, children, ...other } = props;
