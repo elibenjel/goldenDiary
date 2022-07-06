@@ -11,8 +11,16 @@ const CameraProvider = ({ children }) => {
   let cameraRef = useRef();
   const [hasCameraPermission, setHasCameraPermission] = useState();
   const [hasMediaLibraryPermission, setHasMediaLibraryPermission] = useState();
-  const [showCamera, setShowCamera] = useState(false);
+  const [showCamera, setShowCameraBase] = useState(false);
+  const setShowCamera = (arg) => {
+    setShowCameraBase(arg);
+    if (!arg) {
+      setCameraReady(false);
+    }
+  }
+  const [cameraReady, setCameraReady] = useState(false);
   const [photo, setPhoto] = useState();
+  const [lastSaved, setLastSaved] = useState();
 
   useEffect(() => {
     (async () => {
@@ -57,7 +65,8 @@ const CameraProvider = ({ children }) => {
         MediaLibrary.saveToLibraryAsync(photo.uri).then(() => {
           setPhoto(undefined);
           setShowCamera(false);
-        })
+          setLastSaved(photo.uri);
+        });
       }
 
       return (
@@ -77,11 +86,11 @@ const CameraProvider = ({ children }) => {
 
     return (
       <Actionsheet isOpen={showCamera}>
-        <Camera flex={1} width="100%" justifyContent="flex-end" alignItems="center" ref={cameraRef}>
+        <Camera flex={1} width="100%" justifyContent="flex-end" alignItems="center" ref={cameraRef} onCameraReady={() => setCameraReady(true)}>
           <Box position="absolute" top={2} right={2}>
             <Icon onPress={() => setShowCamera(false)} family={Entypo} name="cross" size="xs" color="white" />
           </Box>
-          <Icon onPress={takePic} family={MaterialCommunityIcons} name="camera" size={40} color="white" />
+          <Icon onPress={takePic} disabled={!cameraReady} family={MaterialCommunityIcons} name="camera" size={40} color="white" />
         </Camera>
       </Actionsheet>
     )
@@ -95,7 +104,8 @@ const CameraProvider = ({ children }) => {
       value={{
         renderCameraTrigger,
         renderCamera,
-        showCamera
+        showCamera,
+        lastSaved
       }}
     >
       {

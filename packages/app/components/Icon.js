@@ -14,7 +14,7 @@ export const Icon = (props) => {
 
   return (
     <IconButton
-      {...buttonProps} disabled={Object.keys(buttonProps).length === 0}
+      {...buttonProps} disabled={(Object.keys(buttonProps).length === 0) || buttonProps.disabled}
       icon={React.createElement(family, { name, size, color })}
     />
   )

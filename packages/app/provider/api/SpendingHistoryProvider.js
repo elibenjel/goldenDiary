@@ -202,10 +202,38 @@ const SpendingHistoryProvider = ({ children }) => {
   const deleteSpending = (spending) => {
     const spendingRealm = realmRef.current;
     spendingRealm.write(() => {
+      spending.bills.forEach(billID => {
+        const bill = retrieveBillByID(billID);
+        models.Bill.update(spendingRealm, bill, { '-spendingIDs[]' : [spending._id] }, false);
+      });
       spendingRealm.delete(spending);
       rawSpending.current = spendingRealm.objects("Spending");
       formatSpendingHistory(options);
     });
+  }
+
+  const assignNewBillToSpending = (uri, spending) => {
+    const spendingRealm = realmRef.current;
+    const existingBill = retrieveBillWithURI(uri);
+    if (existingBill) { // there is a Bill with this uri
+      updateSpending(spending, { 'bills[]' : [existingBill._id] });
+      models.Bill.update(spendingRealm, existingBill, { 'spendingIDs[]' : [spending._id] })
+    } else {
+      const newBill = new models.Bill({
+        owner: user?.id,
+        uri,
+        spendingID: spending._id,
+      });
+  
+      spendingRealm.write(() => {
+        spendingRealm.create(
+          "Bill",
+          newBill    
+        );
+      });
+  
+      updateSpending(spending, { 'bills[]' : [newBill._id]});
+    }
   }
 
   // Render the children within the SpendingHistoryContext's provider. The value contains
@@ -215,6 +243,7 @@ const SpendingHistoryProvider = ({ children }) => {
     <SpendingHistoryContext.Provider
       value={{
         createSpending,
+        assignNewBillToSpending,
         updateSpending,
         deleteSpending,
         spendingHistory,
