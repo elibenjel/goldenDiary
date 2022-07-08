@@ -1,16 +1,20 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 import { Camera } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
+import * as FileSystem from 'expo-file-system';
+import { ObjectId } from 'bson';
 import { Icon } from "../../components/Icon";
 import { MaterialCommunityIcons, Entypo } from '../../assets/icons';
 import { Button, HStack, Image, Tooltip, VStack, Box, Actionsheet } from "native-base";
 
 const CameraContext = React.createContext(null);
 
-const CameraProvider = ({ children }) => {
+const CameraProvider = ({ saveDir : saveDirArg, children }) => {
   let cameraRef = useRef();
+  const saveDir = FileSystem.documentDirectory + saveDir + (saveDir.at(-1) === '/' ? '' : '/');
   const [hasCameraPermission, setHasCameraPermission] = useState();
   const [hasMediaLibraryPermission, setHasMediaLibraryPermission] = useState();
+  const [saveDirExists, setSaveDirExists] = useState(false);
   const [showCamera, setShowCameraBase] = useState(false);
   const setShowCamera = (arg) => {
     setShowCameraBase(arg);
@@ -20,19 +24,24 @@ const CameraProvider = ({ children }) => {
   }
   const [cameraReady, setCameraReady] = useState(false);
   const [photo, setPhoto] = useState();
-  const [lastSaved, setLastSaved] = useState();
+  const lastSaved = useRef();
 
   useEffect(() => {
     (async () => {
       const cameraPermission = await Camera.requestCameraPermissionsAsync();
-      const mediaLibraryPermission = await MediaLibrary.requestPermissionsAsync();
+      const dirInfo = await FileSystem.getInfoAsync(saveDir);
+      if (!dirInfo.exists) {
+        console.log("Save directory doesn't exist, creating...");
+        await FileSystem.makeDirectoryAsync(saveDir, { intermediates: true });
+      }
+      setSaveDirExists(true);
       setHasCameraPermission(cameraPermission.status === 'granted');
       setHasMediaLibraryPermission(mediaLibraryPermission.status === 'granted');
     })();
   }, []);
 
   const renderCameraTrigger = () => {
-    if (!hasCameraPermission || !hasMediaLibraryPermission) {
+    if (!hasCameraPermission) {
       return (
         <Tooltip
           label="Vous n'avez pas autorisé l'accès à la caméra ou aux photos. Vérifier les réglages de l'application."
@@ -62,10 +71,11 @@ const CameraProvider = ({ children }) => {
 
     if (photo) {
       const savePic = () => {
-        MediaLibrary.saveToLibraryAsync(photo.uri).then(() => {
+        const uri = saveDir + `${new ObjectId()}.jpeg`;
+        FileSystem.copyAsync({ from : photo.uri, to : uri }).then(() => {
           setPhoto(undefined);
           setShowCamera(false);
-          setLastSaved(photo.uri);
+          lastSaved.current = uri;
         });
       }
 
@@ -78,7 +88,7 @@ const CameraProvider = ({ children }) => {
           />
           <HStack justifyContent="space-evenly">
             <Button onPress={() => setPhoto(undefined)}>Retour</Button>
-            <Button onPress={() => savePic()}>Valider</Button>
+            <Button onPress={() => savePic()} isDisabled={!saveDirExists}>Valider</Button>
           </HStack>
         </Center>
       )
@@ -105,7 +115,11 @@ const CameraProvider = ({ children }) => {
         renderCameraTrigger,
         renderCamera,
         showCamera,
-        lastSaved
+        getLastSaved: () => {
+          const uri = lastSaved.current;
+          lastSaved.current = undefined;
+          return uri;
+        },
       }}
     >
       {

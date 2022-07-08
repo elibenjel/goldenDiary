@@ -4,6 +4,7 @@ import { models, MODELS_VERSION } from "./models";
 import { useAuth } from "../authentication";
 import { useDiary } from "./DiaryProvider";
 import { getMonthlyPeriod, getMonthString, getYear, getYearlyPeriod } from "../../utils/date";
+import { CameraProvider, useCamera } from "../camera";
 
 const SpendingHistoryContext = React.createContext(null);
 
@@ -65,7 +66,7 @@ const grouped = (applyTo, group) => {
   return result;
 }
 
-const SpendingHistoryProvider = ({ children }) => {
+const SpendingProvider = ({ children }) => {
   const { diary } = useDiary();
   const { user } = useAuth();
   const rawSpending = useRef([]);
@@ -193,9 +194,9 @@ const SpendingHistoryProvider = ({ children }) => {
     formatSpendingHistory(options);
   };
 
-  const updateSpending = (spending, updator) => {
+  const updateSpending = (focusedSpending, updator) => {
     const spendingRealm = realmRef.current;
-    models.Spending.update(spendingRealm, spending, updator)
+    models.Spending.update(spendingRealm, focusedSpending, updator)
     formatSpendingHistory(options);
   }
 
@@ -212,28 +213,32 @@ const SpendingHistoryProvider = ({ children }) => {
     });
   }
 
-  const assignNewBillToSpending = (uri, spending) => {
+  const assignBillToSpending = (uri, focusedSpending) => {
     const spendingRealm = realmRef.current;
     const existingBill = retrieveBillWithURI(uri);
     if (existingBill) { // there is a Bill with this uri
-      updateSpending(spending, { 'bills[]' : [existingBill._id] });
-      models.Bill.update(spendingRealm, existingBill, { 'spendingIDs[]' : [spending._id] })
+      updateSpending(focusedSpending, { 'bills[]' : [existingBill._id] });
+      models.Bill.update(spendingRealm, existingBill, { 'spendingIDs[]' : [focusedSpending._id] })
     } else {
       const newBill = new models.Bill({
         owner: user?.id,
         uri,
-        spendingID: spending._id,
+        spendingID: focusedSpending._id,
       });
   
       spendingRealm.write(() => {
         spendingRealm.create(
           "Bill",
-          newBill    
+          newBill
         );
       });
   
-      updateSpending(spending, { 'bills[]' : [newBill._id]});
+      updateSpending(focusedSpending, { 'bills[]' : [newBill._id]});
     }
+  }
+
+  const removeBillFromSpending = (bill, focusedSpending) => {
+    console.log('TODO: implement removeBillFromSpending');
   }
 
   // Render the children within the SpendingHistoryContext's provider. The value contains
@@ -243,10 +248,12 @@ const SpendingHistoryProvider = ({ children }) => {
     <SpendingHistoryContext.Provider
       value={{
         createSpending,
-        assignNewBillToSpending,
+        assignBillToSpending,
+        removeBillFromSpending,
         updateSpending,
         deleteSpending,
         spendingHistory,
+        setFocusedSpending,
         formatSpendingHistory,
         options,
         search,
@@ -268,5 +275,13 @@ const useSpendingHistory = () => {
   }
   return spendingHistory;
 };
+
+const SpendingHistoryProvider = ({ saveDir, children }) => (
+  // <CameraProvider saveDir={saveDir}>
+    <SpendingProvider>
+      {children}
+    </SpendingProvider>
+  // </CameraProvider>
+)
 
 export { SpendingHistoryProvider, useSpendingHistory };

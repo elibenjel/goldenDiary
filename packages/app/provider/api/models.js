@@ -1,6 +1,7 @@
 
 import { ObjectId } from "bson";
 import { getCurrentDate } from "../../utils/date";
+import * as FileSystem from 'expo-file-system';
 
 export const MODELS_VERSION = 3;
 const CURRENCIES = ['€', '$'];
@@ -192,12 +193,23 @@ class Bill {
   static update = (realm, bill, updator, openTransaction = true) => {
     updateDocument(realm, bill, updator, openTransaction);
     if (bill.spendingIDs.length === 0) {
-      this.delete(realm, bill, openTransaction);
+      this.deleteBill(realm, bill, openTransaction);
     }
   }
 
-  static delete = (realm, bill, openTransaction = true) => {
-    console.log('TODO: implement delete method for Bill type, which must also remove the image from the device');
+  static deleteBill = (realm, bill, openTransaction = true) => {
+    const del = () => {
+      realm.delete(bill);
+      FileSystem.deleteAsync(bill.uri).then(() => {
+        console.log(`Deleted local file ${bill.uri} with success`);
+      });
+    }
+
+    if (openTransaction) {
+      realm.write(del);
+    } else {
+      del();
+    }
   }
 
   static schema = {
