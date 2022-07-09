@@ -39,11 +39,13 @@ const SpendingForm = (props) => {
   const [date, setDate] = useState(spendingRef.current?.when || new Date());
   const [amount, setAmount] = useState(spendingRef.current?.amount ? `${spendingRef.current.amount}` : '');
   const [bills, setBills] = useState(spendingRef.current?.bills || []);
-  
-  const { createSpending, updateSpending } = useSpendingHistory();
+  const [newBills, setNewBills] = useState([]);
+
+  const { createSpending, updateSpending, assignBillToSpending } = useSpendingHistory();
   const { diary, addSpendingCategory } = useDiary();
   const addSpendingCategoryModalState = useModalState();
-  const { renderCameraTrigger, showCamera } = useCamera();
+  const { renderCameraTrigger, showCamera, onSaveSuccessRef } = useCamera();
+  onSaveSuccessRef.current = (uri) => setNewBills([...newBills, uri]);
 
   const { valid, messages } = useValidator({
     name: {
@@ -70,7 +72,7 @@ const SpendingForm = (props) => {
       name,
       amount: Number(amount),
       category,
-      when: date
+      when: date,
     };
 
     if (spendingRef.current) {
@@ -81,9 +83,13 @@ const SpendingForm = (props) => {
         }
       });
 
-      Object.keys(updator).length > 0 && updateSpending(spendingRef.current, updator)
+      Object.keys(updator).length > 0 && updateSpending(spendingRef.current, updator);
+      newBills.forEach(newBill => assignBillToSpending(newBill, spendingRef.current));
     } else {
-      createSpending(spendingData);
+      createSpending({
+        ...spendingData,
+        bills: newBills
+      });
     }
   }
 
@@ -126,7 +132,7 @@ const SpendingForm = (props) => {
           width={'100%'}
         />
         <FormControlledDatePicker key="datePicker" label="Date" state={[date, setDate]} width={'100%'} />
-        <FormControlledImage key="bills" label="Factures" uris={bills}>
+        <FormControlledImage key="bills" label="Factures" uris={[...bills, ...newBills]}>
           {renderCameraTrigger()}
         </FormControlledImage> 
       </ModalForm>
@@ -192,7 +198,7 @@ const SpendingManager = () => {
           <VStack w='100%' alignItems="center" space="md">
             <SearchBar placeholder="Rechercher" />
             {
-              spendingHistory.length === 0 ?
+              Object.keys(spendingHistory).length === 0 ?
               <TextPrimary fontSize="lg">Aucune dépenses trouvées</TextPrimary>
               : 
               Object.entries(spendingHistory).map(([group, spending]) => {
@@ -257,7 +263,7 @@ const SpendingManager = () => {
 
 export const Spending = (props) => {
   return (
-    <CameraProvider>
+    <CameraProvider saveDir="bills">
       <SpendingHistoryProvider>
         <SpendingManager {...props} />
       </SpendingHistoryProvider>

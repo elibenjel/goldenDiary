@@ -1,10 +1,10 @@
-import React, { useContext, useState, useEffect, useRef } from "react";
-import Realm from "realm";
-import { models, MODELS_VERSION } from "./models";
-import { useAuth } from "../authentication";
-import { useDiary } from "./DiaryProvider";
-import { getMonthlyPeriod, getMonthString, getYear, getYearlyPeriod } from "../../utils/date";
-import { CameraProvider, useCamera } from "../camera";
+import React, { useContext, useState, useEffect, useRef } from 'react';
+import Realm from 'realm';
+import { models, MODELS_VERSION } from './models';
+import { useAuth } from '../authentication';
+import { useDiary } from './DiaryProvider';
+import { getMonthlyPeriod, getMonthString, getYear, getYearlyPeriod } from '../../utils/date';
+import { CameraProvider, useCamera } from '../camera';
 
 const SpendingHistoryContext = React.createContext(null);
 
@@ -66,7 +66,7 @@ const grouped = (applyTo, group) => {
   return result;
 }
 
-const SpendingProvider = ({ children }) => {
+const SpendingHistoryProvider = ({ children }) => {
   const { diary } = useDiary();
   const { user } = useAuth();
   const rawSpending = useRef([]);
@@ -146,7 +146,7 @@ const SpendingProvider = ({ children }) => {
     Realm.open(config).then((spendingRealm) => {
       realmRef.current = spendingRealm;
 
-      rawSpending.current = spendingRealm.objects("Spending");
+      rawSpending.current = spendingRealm.objects('Spending');
 
       // rawSpending.current.addListener(() => {
       //   formatSpendingHistory(options);
@@ -174,7 +174,8 @@ const SpendingProvider = ({ children }) => {
     category,
     currency = diary.defaultCurrency,
     where,
-    when
+    when,
+    bills
   }) => {
     const spendingRealm = realmRef.current;
     spendingRealm.write(() => {
@@ -187,58 +188,72 @@ const SpendingProvider = ({ children }) => {
           category,
           currency,
           where,
-          when
+          when,
+          bills
         })
       );
     });
     formatSpendingHistory(options);
   };
 
-  const updateSpending = (focusedSpending, updator) => {
+  const updateSpending = (focusedSpending, updator, openTransaction = true) => {
     const spendingRealm = realmRef.current;
-    models.Spending.update(spendingRealm, focusedSpending, updator)
+    models.Spending.update(spendingRealm, focusedSpending, updator, openTransaction)
     formatSpendingHistory(options);
+  }
+
+  const retrieveBillByURI = (uri) => {
+    const spendingRealm = realmRef.current;
+    const bill = spendingRealm.objectForPrimaryKey('Bill', uri);
+    return bill;
   }
 
   const deleteSpending = (spending) => {
     const spendingRealm = realmRef.current;
     spendingRealm.write(() => {
-      spending.bills.forEach(billID => {
-        const bill = retrieveBillByID(billID);
+      spending.bills.forEach(uri => {
+        const bill = retrieveBillByURI(uri);
         models.Bill.update(spendingRealm, bill, { '-spendingIDs[]' : [spending._id] }, false);
       });
       spendingRealm.delete(spending);
-      rawSpending.current = spendingRealm.objects("Spending");
+      rawSpending.current = spendingRealm.objects('Spending');
       formatSpendingHistory(options);
     });
   }
 
   const assignBillToSpending = (uri, focusedSpending) => {
     const spendingRealm = realmRef.current;
-    const existingBill = retrieveBillWithURI(uri);
-    if (existingBill) { // there is a Bill with this uri
-      updateSpending(focusedSpending, { 'bills[]' : [existingBill._id] });
-      models.Bill.update(spendingRealm, existingBill, { 'spendingIDs[]' : [focusedSpending._id] })
-    } else {
-      const newBill = new models.Bill({
-        owner: user?.id,
-        uri,
-        spendingID: focusedSpending._id,
-      });
-  
-      spendingRealm.write(() => {
+    const existingBill = retrieveBillByURI(uri);
+    spendingRealm.write(() => {
+      if (existingBill) { // there is a Bill with this ID
+        updateSpending(focusedSpending, { 'bills[]' : [existingBill.uri] }, false);
+        models.Bill.update(spendingRealm, existingBill, { 'spendingIDs[]' : [focusedSpending._id] }, false)
+      } else {
+        const newBill = new models.Bill({
+          owner: user?.id,
+          uri,
+          spendingID: focusedSpending._id,
+        });
+    
         spendingRealm.create(
           "Bill",
           newBill
         );
-      });
-  
-      updateSpending(focusedSpending, { 'bills[]' : [newBill._id]});
-    }
+    
+        updateSpending(focusedSpending, { 'bills[]' : [newBill.uri]}, false);
+      }
+    });
   }
 
-  const removeBillFromSpending = (bill, focusedSpending) => {
-    console.log('TODO: implement removeBillFromSpending');
+  const removeBillFromSpending = (uri, focusedSpending) => {
+    const spendingRealm = realmRef.current;
+    const bill = retrieveBillByURI(uri);
+    if (bill) { // there is a Bill with this ID
+      spendingRealm.write(() => {
+        updateSpending(focusedSpending, { '-bills[]' : [bill.uri] }, false);
+        models.Bill.update(spendingRealm, bill, { '-spendingIDs[]' : [focusedSpending._id] }, false)
+      });
+    }
   }
 
   // Render the children within the SpendingHistoryContext's provider. The value contains
@@ -247,17 +262,17 @@ const SpendingProvider = ({ children }) => {
   return (
     <SpendingHistoryContext.Provider
       value={{
+        spendingHistory,
+        formatSpendingHistory,
         createSpending,
-        assignBillToSpending,
-        removeBillFromSpending,
         updateSpending,
         deleteSpending,
-        spendingHistory,
-        setFocusedSpending,
-        formatSpendingHistory,
+        assignBillToSpending,
+        removeBillFromSpending,
         options,
         search,
-        searchFor
+        searchFor,
+        // setFocusedSpending,
       }}
     >
       {children}
@@ -276,12 +291,12 @@ const useSpendingHistory = () => {
   return spendingHistory;
 };
 
-const SpendingHistoryProvider = ({ saveDir, children }) => (
-  // <CameraProvider saveDir={saveDir}>
-    <SpendingProvider>
-      {children}
-    </SpendingProvider>
-  // </CameraProvider>
-)
+// const SpendingHistoryProvider = ({ saveDir, children }) => (
+//   // <CameraProvider saveDir={saveDir}>
+//     <SpendingProvider>
+//       {children}
+//     </SpendingProvider>
+//   // </CameraProvider>
+// )
 
 export { SpendingHistoryProvider, useSpendingHistory };

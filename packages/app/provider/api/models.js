@@ -3,11 +3,20 @@ import { ObjectId } from "bson";
 import { getCurrentDate } from "../../utils/date";
 import * as FileSystem from 'expo-file-system';
 
-export const MODELS_VERSION = 3;
+export const MODELS_VERSION = 5;
 const CURRENCIES = ['€', '$'];
 
-const updateDocument = (realm, document, updator, openTransaction = true) => {
-  const writeOK = this.isUpdateAllowed(updator);
+const isUpdateAllowed = (rules, updator) => {
+  return Object.entries(updator).every(([property, updatedValue]) => {
+    return (
+      property in rules && // if user can update this property
+      rules[property](updatedValue)  // and did provide a valid new value
+    )
+  });
+}
+
+const updateDocument = (updateRules, realm, document, updator, openTransaction = true) => {
+  const writeOK = isUpdateAllowed(updateRules, updator);
   if (!writeOK) {
     console.log('Operation cancelled: you attempted an invalid update on a Spending object');
     return;
@@ -38,15 +47,6 @@ const updateDocument = (realm, document, updator, openTransaction = true) => {
   }
 }
 
-const isUpdateAllowedForRules = (rules) => (updator) => {
-  return Object.entries(updator).every(([property, updatedValue]) => {
-    return (
-      property in rules && // if user can update this property
-      rules[property](updatedValue)  // and did provide a valid new value
-    )
-  });
-}
-
 class Diary {
   /**
    *
@@ -67,13 +67,18 @@ class Diary {
 
   static CURRENCIES = CURRENCIES;
 
-  static isUpdateAllowed = isUpdateAllowedForRules({
+  static updateRules = {
     'spendingCategories[]': (newValue) => newValue.length !== 0,
     '-spendingCategories[]': (newValue) => newValue.length !== 0,
     'defaultCurrency': (newValue) => CURRENCIES.includes(newValue)
-  });
+  }
 
-  static update = (realm, diary, updator) => updateDocument(realm, diary, updator);
+  static update = (realm, diary, updator) => updateDocument(
+    this.updateRules,
+    realm,
+    diary,
+    updator
+  );
 
   static addSpendingCategory = (realm, diary, category) => this.update(
     realm,
@@ -116,6 +121,7 @@ class Spending {
     currency,
     where = '',
     when,
+    bills = []
   }) {
     this._owner = owner;
     this._id = id;
@@ -127,12 +133,12 @@ class Spending {
     this.currency = currency;
     this.when = when;
     this.where = where;
-    this.bills = [];
+    this.bills = bills;
   }
 
   static CURRENCIES = CURRENCIES;
 
-  static isUpdateAllowed = isUpdateAllowedForRules({
+  static updateRules = {
     'name': (newValue) => newValue.length !== 0,
     'amount': (newValue) => newValue > 0,
     'category': (newValue) => newValue.length !== 0,
@@ -141,9 +147,21 @@ class Spending {
     'where': (newValue) => newValue.length !== 0,
     'bills[]': (args) => args.length !== 0,
     '-bills[]': (args) => args.length !== 0
-  });
+  }
 
-  static update = (realm, spending, updator) => updateDocument(realm, spending, updator);
+  static update = (realm, spending, updatorArg, openTransaction = true) => {
+    const { bills, ...updator } = updatorArg;
+    if (bills) {
+      const newBills = bills.filter(bill => !(spending.bills.includes(bill)));
+      const billsToRemove = spending.bills.filter(bill => !(bills.includes(bill)));
+      if (newBills) {
+        updator['bills[]'] = newBills;
+      } else {
+        updator['-bills[]'] = billsToRemove;
+      }
+    }
+    updateDocument(this.updateRules, realm, spending, updator, openTransaction);
+  }
   
   static schema = {
     name: 'Spending',
@@ -160,6 +178,7 @@ class Spending {
       where: 'string?',
       bills: 'string[]'
     },
+    primaryKey: '_id',
   };
 }
 
@@ -182,16 +201,17 @@ class Bill {
     this.createdAt = getCurrentDate();
     this.updatedAt = getCurrentDate();
     this.uri = uri;
+    console.log(typeof spendingID)
     this.spendingIDs = [spendingID];
   }
 
-  static isUpdateAllowed = isUpdateAllowedForRules({
+  static updateRules = {
     'spendingIDs[]': (arg) => arg.length > 0,
     '-spendingIDs[]': (arg) => arg.length > 0
-  });
+  }
   
   static update = (realm, bill, updator, openTransaction = true) => {
-    updateDocument(realm, bill, updator, openTransaction);
+    updateDocument(this.updateRules, realm, bill, updator, openTransaction);
     if (bill.spendingIDs.length === 0) {
       this.deleteBill(realm, bill, openTransaction);
     }
@@ -220,8 +240,9 @@ class Bill {
       updatedAt: 'date?',
       _owner: 'string?',
       uri: 'string',
-      spendingIDs: 'string[]'
+      spendingIDs: 'objectId[]'
     },
+    primaryKey: 'uri',
   };
 }
 

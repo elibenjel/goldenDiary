@@ -5,13 +5,14 @@ import * as FileSystem from 'expo-file-system';
 import { ObjectId } from 'bson';
 import { Icon } from "../../components/Icon";
 import { MaterialCommunityIcons, Entypo } from '../../assets/icons';
-import { Button, HStack, Image, Tooltip, VStack, Box, Actionsheet } from "native-base";
+import { Button, Center, HStack, Image, Tooltip, VStack, Box, Actionsheet } from "native-base";
+import { base64image } from "./base64";
 
 const CameraContext = React.createContext(null);
 
 const CameraProvider = ({ saveDir : saveDirArg, children }) => {
   let cameraRef = useRef();
-  const saveDir = FileSystem.documentDirectory + saveDir + (saveDir.at(-1) === '/' ? '' : '/');
+  const saveDir = FileSystem.documentDirectory + saveDirArg + (saveDirArg[saveDirArg.length - 1] === '/' ? '' : '/');
   const [hasCameraPermission, setHasCameraPermission] = useState();
   const [hasMediaLibraryPermission, setHasMediaLibraryPermission] = useState();
   const [saveDirExists, setSaveDirExists] = useState(false);
@@ -23,6 +24,7 @@ const CameraProvider = ({ saveDir : saveDirArg, children }) => {
     }
   }
   const [cameraReady, setCameraReady] = useState(false);
+  const onSaveSuccessRef = useRef(() => null);
   const [photo, setPhoto] = useState();
   const lastSaved = useRef();
 
@@ -36,7 +38,7 @@ const CameraProvider = ({ saveDir : saveDirArg, children }) => {
       }
       setSaveDirExists(true);
       setHasCameraPermission(cameraPermission.status === 'granted');
-      setHasMediaLibraryPermission(mediaLibraryPermission.status === 'granted');
+      // setHasMediaLibraryPermission(mediaLibraryPermission.status === 'granted');
     })();
   }, []);
 
@@ -62,8 +64,12 @@ const CameraProvider = ({ saveDir : saveDirArg, children }) => {
       exif: false
     }
 
-    const newPhoto = await cameraRef.current.takePictureAsync(options);
-    setPhoto(newPhoto);
+    // const newPhoto = await cameraRef.current.takePictureAsync(options);
+    // setPhoto(newPhoto);
+    setPhoto({
+      uri: 'https://wallpaperaccess.com/full/317501.jpg',
+      base64: base64image
+    })
   }
 
   const renderCamera = () => {
@@ -72,25 +78,30 @@ const CameraProvider = ({ saveDir : saveDirArg, children }) => {
     if (photo) {
       const savePic = () => {
         const uri = saveDir + `${new ObjectId()}.jpeg`;
-        FileSystem.copyAsync({ from : photo.uri, to : uri }).then(() => {
+        // FileSystem.copyAsync({ from : photo.uri, to : uri }).then(() => {
+        FileSystem.downloadAsync(photo.uri, uri).then(() => {
           setPhoto(undefined);
           setShowCamera(false);
           lastSaved.current = uri;
+          onSaveSuccessRef.current(uri);
+          onSaveSuccessRef.current = () => null;
         });
       }
 
       return (
-        <Center>
-          <Image
-            source={{
-              uri: "data:image/jpeg;base64," + photo.base64
-            }} alt="Alternate Text" size="xl"
-          />
-          <HStack justifyContent="space-evenly">
-            <Button onPress={() => setPhoto(undefined)}>Retour</Button>
-            <Button onPress={() => savePic()} isDisabled={!saveDirExists}>Valider</Button>
-          </HStack>
-        </Center>
+        <Actionsheet isOpen={showCamera}>
+          <Center>
+            <Image
+              source={{
+                uri: "data:image/jpeg;base64," + photo.base64
+              }} alt="Alternate Text" size="xl"
+            />
+            <HStack justifyContent="space-evenly">
+              <Button onPress={() => setPhoto(undefined)}>Retour</Button>
+              <Button onPress={() => savePic()} isDisabled={!saveDirExists}>Valider</Button>
+            </HStack>
+          </Center>
+        </Actionsheet>
       )
     }
 
@@ -100,7 +111,7 @@ const CameraProvider = ({ saveDir : saveDirArg, children }) => {
           <Box position="absolute" top={2} right={2}>
             <Icon onPress={() => setShowCamera(false)} family={Entypo} name="cross" size="xs" color="white" />
           </Box>
-          <Icon onPress={takePic} disabled={!cameraReady} family={MaterialCommunityIcons} name="camera" size={40} color="white" />
+          <Icon onPress={takePic} disabled={!true} family={MaterialCommunityIcons} name="camera" size={40} color="white" />
         </Camera>
       </Actionsheet>
     )
@@ -115,6 +126,7 @@ const CameraProvider = ({ saveDir : saveDirArg, children }) => {
         renderCameraTrigger,
         renderCamera,
         showCamera,
+        onSaveSuccessRef,
         getLastSaved: () => {
           const uri = lastSaved.current;
           lastSaved.current = undefined;
