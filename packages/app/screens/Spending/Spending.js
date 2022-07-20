@@ -3,9 +3,12 @@ import React, { useRef, useState } from 'react';
 import {
   VStack,
   Box,
+  Center,
   Pressable,
   Image,
+  Stack,
   HStack,
+  Text,
   Tooltip
 } from 'native-base';
 
@@ -119,7 +122,7 @@ const SpendingForm = (props) => {
           state={[category, setCategory]}
           items={diary.spendingCategories.map(c => ({ label: c, value: c }))}
           label="Catégorie" labelLeftIcon={
-            <Icon onPress={addSpendingCategoryModalState.openModal} family={AntDesign} name="plussquare" size={'xs'} color="black" />
+            <Icon onPress={addSpendingCategoryModalState.openModal} family={AntDesign} name="plussquare" size={15} color="orange" />
           }
           placeholder="Choisir la catégorie de la dépense"
           width={'100%'}
@@ -178,6 +181,41 @@ const AddSpendingCategoryModal = (props) => {
   )
 }
 
+const SpendingCard = (props) => {
+  const { title, category, date, TopRightCorner, amount } = props;
+  return (
+    <VStack p={1} w="100%" h="80px" rounded="lg" overflow="hidden" borderWidth="1"
+      _dark={{
+        borderColor: "coolGray.600",
+        backgroundColor: "gray.700"
+      }} _light={{
+        borderColor: "coolGray.200",
+        backgroundColor: "gray.50"
+      }} _web={{
+        shadow: 2,
+        borderWidth: 0
+      }}
+      alignItems="flex-start"
+    >
+      <Center>
+        <Text fontSize="lg">{title}</Text>
+      </Center>
+      <Center mt="-1">
+        <Text fontSize="xs">{category}</Text>
+      </Center>
+      <Center position="absolute" top="-10" right="-10">
+        {TopRightCorner}
+      </Center>
+      <Center position="absolute" left="1" bottom="0">
+        <Text fontSize="10" fontWeight="500" color="red.900">{date}</Text>
+      </Center>
+      <Center position="absolute" bottom="30%" right="20">
+        <Text fontSize="2xl">{amount}€</Text>
+      </Center>
+    </VStack>
+  )
+}
+
 const SpendingManager = () => {
   const {
     spendingHistory,
@@ -203,37 +241,40 @@ const SpendingManager = () => {
               : 
               Object.entries(spendingHistory).map(([group, spending]) => {
                 return (
-                  <VStack key={group} w="100%">
-                    <HeaderText>{group}</HeaderText>
-                    {
-                      spending.map(sp => {
-                        return (
-                          <Pressable w='90%' key={sp._id} onPress={() => {
-                            spendingRef.current = sp;
-                            modalState.openModal();
-                          }}>
-                            <MediumTitledCard
-                              title={sp.name} subtitle={sp.category}
-                              footer={`${getDay(sp.when)}-${getMonth(sp.when)}-${getYear(sp.when)}`}
-                              TopRightCorner={
-                                <Icon
-                                  family={Entypo}
-                                  name="cross"
-                                  size="xs"
-                                  color="black"
-                                  onPress={() => {
-                                    deleteSpendingRef.current = () => deleteSpending(sp);
-                                    deleteModalState.openModal();
-                                  }}
-                                />
-                              }
-                            >
-                              <TextPrimary fontSize="lg">{sp.amount}€</TextPrimary>
-                            </MediumTitledCard>
-                          </Pressable>
-                        )
-                      })
-                    }
+                  <VStack key={group} alignItems="stretch" w="100%">
+                    <Center p={1} mb={2} backgroundColor="gray.200">
+                      <HeaderText>{group}</HeaderText>
+                    </Center>
+                    <Center>
+                      {
+                        spending.map(sp => {
+                          return (
+                            <Pressable w='90%' mb={2} key={sp._id} onPress={() => {
+                              spendingRef.current = sp;
+                              modalState.openModal();
+                            }}>
+                              <SpendingCard
+                                title={sp.name} category={sp.category}
+                                date={`${getDay(sp.when)}-${getMonth(sp.when)}-${getYear(sp.when)}`}
+                                amount={sp.amount}
+                                TopRightCorner={
+                                  <Icon
+                                    family={Entypo}
+                                    name="cross"
+                                    size="xs"
+                                    color="black"
+                                    onPress={() => {
+                                      deleteSpendingRef.current = () => deleteSpending(sp);
+                                      deleteModalState.openModal();
+                                    }}
+                                  />
+                                }
+                              />
+                            </Pressable>
+                          )
+                        })
+                      }
+                    </Center>
                   </VStack>
                 )
               })

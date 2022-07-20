@@ -5,7 +5,7 @@ import { Feather } from "../../assets/icons";
 import { TextSecondary } from '../Typography';
 
 export const FormControlledImage = (props) => {
-  const { label, labelLeftIcon, uris, children, ...other } = props;
+  const { label, labelLeftIcon, uris, cameraTrigger, ...other } = props;
 
   return (
     <FormControl w={'100%'} {...other}>
@@ -33,7 +33,7 @@ export const FormControlledImage = (props) => {
             )).slice(0, 3)
           }
         </HStack>
-        {children}
+        {cameraTrigger}
       </HStack>
     </FormControl>
   )

@@ -5,7 +5,7 @@ import React from 'react';
 const mainScreens = {};
 
 mainScreens.Home = {
-  title: 'Home',
+  title: 'Accueil',
   icon: ({ focused, color, size }) => {
     const IconFamily = focused ? Ionicons : Ionicons;
     const iconName = focused ? 'home' : 'home-outline';
@@ -16,7 +16,7 @@ mainScreens.Home = {
 
 
 mainScreens.Spending = {
-  title: 'Spending',
+  title: 'Dépenses',
   icon: ({ focused, color, size }) => {
     const IconFamily = focused ? Ionicons : Ionicons;
     const iconName = focused ? 'receipt' : 'receipt-outline';
@@ -46,7 +46,7 @@ mainScreens.Simulation = {
 }
 
 mainScreens.Learn = {
-  title: 'Learn',
+  title: 'A propos',
   icon: ({ focused, color, size }) => {
     const IconFamily = focused ? AntDesign : AntDesign;
     const iconName = focused ? 'questioncircle' : 'questioncircleo';
@@ -55,4 +55,4 @@ mainScreens.Learn = {
   linkTo: '/learn'
 }
 
-export default mainScreens;
+export { mainScreens };

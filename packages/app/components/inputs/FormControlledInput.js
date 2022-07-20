@@ -10,8 +10,8 @@ export const FormControlledInput = (props) => {
       {
         label ?
         <HStack alignItems="center">
-          <FormControl.Label mb="12px">{label}</FormControl.Label>
-          {labelLeftIcon ? <Box mt="5px" mb="15px">{labelLeftIcon}</Box> : null}
+          <FormControl.Label mb="8px">{label}</FormControl.Label>
+          {labelLeftIcon ? <Box mt="5px" mb="8px">{labelLeftIcon}</Box> : null}
         </HStack>
         : null
       }

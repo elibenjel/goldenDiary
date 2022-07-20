@@ -48,13 +48,14 @@ export const SearchBar = (props) => {
   }
   
   return (
-    <HStack w="100%" justifyContent="space-between">
+    <HStack w="100%" alignItems="center" justifyContent="space-between">
       <HStack w="75%">
         <FormControlledTextField
           placeholder={placeholder}
           state={[search, searchFor]}
           // borderRadius="4" py="3" px="1" fontSize="14"
           InputLeftElement={<Icon family={MaterialIcons} name="search" size="xs" />}
+          height="40px"
           // InputRightElement={<Icon m="2" mr="3" size="6" color="gray.400" as={<MaterialIcons name="mic" />} />}
         />
       </HStack>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Center, Box, HStack, Stack } from 'native-base';
-import { HeaderText, SubHeaderText, FooterText } from './Typography';
+import { HeaderText, SubHeaderText, FooterText, TextPrimary } from './Typography';
 
 
 export const LargeTitledCard = (props) => {
@@ -54,24 +54,24 @@ export const MediumTitledCard = (props) => {
         borderWidth: 0
       }}
     >
-      <Stack>
+      <Stack p={1}>
         <Center position="absolute" top="-10" right="-10">
           {TopRightCorner}
         </Center>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mr="8">
           <Stack justifyContent="space-between">
             <Stack>
-              <HStack mt="-2" alignItems="center">
-                <HeaderText>
+              <HStack alignItems="center">
+                <TextPrimary>
                   {title}
-                </HeaderText>
+                </TextPrimary>
                 {HeaderRight}
               </HStack>
-              <SubHeaderText ml="4" mb="2" mt="-1">
+              <SubHeaderText ml="2" mb="2" mt="-1">
                 {subtitle}
               </SubHeaderText>
             </Stack>
-            <FooterText ml="2">{footer}</FooterText>
+            <FooterText>{footer}</FooterText>
           </Stack>
           {children}
           {rightContent}

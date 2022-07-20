@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Menu, Pressable } from 'native-base';
+import { useRouter } from 'solito/router';
+import { createParam } from 'solito';
 // import * as Linking from 'expo-linking';
 
 import { FontAwesome } from '../../assets/icons';
@@ -31,29 +33,61 @@ export const useSetHeaderRightLayoutEffect = () => {
   }, [navigation]);
 }
 
-export function NavigationProvider({ children }) {
+const NavigationContext = React.createContext(null);
+const useParam = createParam();
+
+export const NavigationProvider = ({ children }) => {
+  const { push : solitoPush, back } = useRouter();
+  const push = (route, params = {}) => {
+    solitoPush({
+      pathname: route,
+      query: params,
+    });
+  }
+  
   return (
-    <NavigationContainer
-      linking={useMemo(
-        () => ({
-          // prefixes: [Linking.createURL('/')],
-          config: {
-            initialRouteName: '',
-            screens: {
-              Home: '',
-              Spending: 'spending',
-              Budget: 'budget',
-              Simulation: 'simulation',
-              Learn: 'learn'
-            },
-          },
-        }),
-        []
-      )}
+    <NavigationContext.Provider
+      value={{
+        push,
+        back,
+        getRoute : () => useRoute().name,
+        getParam : () => useRoute().params
+      }}
     >
-      {children}
-    </NavigationContainer>
+      <NavigationContainer
+        linking={useMemo(
+          () => ({
+            // prefixes: [Linking.createURL('/')],
+            config: {
+              initialRouteName: '',
+              screens: {
+                Home: '',
+                Spending: 'spending',
+                Budget: 'budget',
+                Simulation: 'simulation',
+                Learn: 'learn'
+              },
+            },
+          }),
+          []
+        )}
+        onStateChange={(newState) => setNavigationState(newState)}
+      >
+        {children}
+      </NavigationContainer>
+    </NavigationContext.Provider>
   )
 }
+
+// The useDiary hook can be used by any descendant of the DiaryProvider. It
+// provides the diary of the user and functions to
+// update and reset the diary.
+export const useNavigation = () => {
+  const navigation = useContext(NavigationContext);
+  if (navigation == null) {
+    throw new Error("useNavigation() called outside of a NavigationProvider?"); // an alert is not placed because this is an error for the developer not the user
+  }
+  return navigation;
+};
 
 export const InnerWrapper = ({children}) => <>{children}</>;

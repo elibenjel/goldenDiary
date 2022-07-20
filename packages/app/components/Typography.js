@@ -16,11 +16,6 @@ export const SubHeaderText = (props) => {
   return (
     <Text
       fontSize="xs" fontWeight="500"
-      _light={{
-        color: "violet.500"
-      }} _dark={{
-        color: "violet.400"
-      }}
       {...props}
     ></Text>
   )
@@ -29,12 +24,8 @@ export const SubHeaderText = (props) => {
 export const FooterText = (props) => {
   return (
     <Text
-      fontSize="10" fontWeight="300"
-      _light={{
-        color: "violet.500"
-      }} _dark={{
-        color: "violet.400"
-      }}
+      fontSize="10" fontWeight="500"
+      color="red.900"
       {...props}
     ></Text>
   )

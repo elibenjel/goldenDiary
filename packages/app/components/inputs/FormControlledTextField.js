@@ -4,7 +4,7 @@ import { FormControlledInput } from "./FormControlledInput";
 
 const TextField = (props) => {
   const { value, onChangeText, ...other } = props;
-  return <Input w="100%" value={value} onChangeText={onChangeText} size="xs" {...other} />;
+  return <Input w="100%" value={value} onChangeText={onChangeText} height="30px" size="xs" {...other} />;
 }
 
 export const FormControlledTextField = (props) => {

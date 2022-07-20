@@ -13,7 +13,7 @@ export const FormControlledSelect = (props) => {
       errorMessage={errorMessage} value={selected}
     >
       <Box w={'100%'}>
-        <Select selectedValue={selected} onValueChange={setSelected} size="xs" {...selectProps}>
+        <Select selectedValue={selected} onValueChange={setSelected} height="30" size="xs" {...selectProps}>
         {
           items.map(item => <Select.Item key={item.label} label={item.label} value={item.value} />)
         }

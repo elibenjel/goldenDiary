@@ -26,7 +26,6 @@ const CameraProvider = ({ saveDir : saveDirArg, children }) => {
   const [cameraReady, setCameraReady] = useState(false);
   const onSaveSuccessRef = useRef(() => null);
   const [photo, setPhoto] = useState();
-  const lastSaved = useRef();
 
   useEffect(() => {
     (async () => {
@@ -82,7 +81,6 @@ const CameraProvider = ({ saveDir : saveDirArg, children }) => {
         FileSystem.downloadAsync(photo.uri, uri).then(() => {
           setPhoto(undefined);
           setShowCamera(false);
-          lastSaved.current = uri;
           onSaveSuccessRef.current(uri);
           onSaveSuccessRef.current = () => null;
         });
@@ -90,17 +88,19 @@ const CameraProvider = ({ saveDir : saveDirArg, children }) => {
 
       return (
         <Actionsheet isOpen={showCamera}>
-          <Center>
-            <Image
-              source={{
-                uri: "data:image/jpeg;base64," + photo.base64
-              }} alt="Alternate Text" size="xl"
-            />
-            <HStack justifyContent="space-evenly">
-              <Button onPress={() => setPhoto(undefined)}>Retour</Button>
+          <HStack backgroundColor="gray.50" flex={1} alignItems="center" justifyContent="center">
+            <VStack backgroundColor="gray.50" flex={1} alignItems="center">
+              <Image
+                source={{
+                  uri: "data:image/jpeg;base64," + photo.base64
+                }} alt="Alternate Text" size="xl"
+              />
+            </VStack>
+            <HStack position="absolute" bottom={2} justifyContent="space-evenly">
+              <Button onPress={() => setPhoto(undefined)} mr={2}>Retour</Button>
               <Button onPress={() => savePic()} isDisabled={!saveDirExists}>Valider</Button>
             </HStack>
-          </Center>
+          </HStack>
         </Actionsheet>
       )
     }
@@ -126,12 +126,7 @@ const CameraProvider = ({ saveDir : saveDirArg, children }) => {
         renderCameraTrigger,
         renderCamera,
         showCamera,
-        onSaveSuccessRef,
-        getLastSaved: () => {
-          const uri = lastSaved.current;
-          lastSaved.current = undefined;
-          return uri;
-        },
+        onSaveSuccessRef
       }}
     >
       {

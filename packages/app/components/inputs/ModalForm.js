@@ -2,52 +2,51 @@ import React, { useState } from "react";
 import { Box, Modal, Button } from "native-base";
 import { FormControlledTextField } from "./FormControlledTextField";
 import { useValidator } from "../../hooks/useValidator";
+import { useOnLayout } from "../../hooks/useOnLayout";
 
 export const ModalForm = (props) => {
   const { show, close, header, submit, submitLabel = 'Confirmer', placement = 'center', children } = props;
-  const [fieldWidth, setFieldWidth] = useState(null);
+  const { width : inputWidth, onLayout } = useOnLayout();
   const margins = 30;
-  const onLayout = (event) => {
-    const width = event.nativeEvent.layout.width;
-    setFieldWidth(width - margins);
-  }
 
   const oneChild = 'props' in children;
   return (
     <Modal isOpen={show} onClose={close}>
-        <Modal.Content {...styles[placement]} alignItems="center" onLayout={onLayout}>
-          <Modal.CloseButton />
-          <Modal.Header>{header}</Modal.Header>
-          <Modal.Body>
-            {
-              oneChild ?
-              <Box w={fieldWidth}>
-                {children}
-              </Box> :
-              Object.values(children).map(child => {
+      <Modal.Content {...styles[placement]} alignItems="center" onLayout={onLayout}>
+        <Modal.CloseButton />
+        <Modal.Header>{header}</Modal.Header>
+        <Modal.Body>
+          {
+            width ? (
+              oneChild ? (
+                <Box w={width}>
+                  {children}
+                </Box>
+              ) : Object.values(children).map(child => {
                 return(
-                  <Box key={child.key} w={fieldWidth}>
+                  <Box key={child.key} w={width}>
                     {child}
                   </Box>
                 )
               })
-            }
-          </Modal.Body>
-          <Modal.Footer>
-            <Button.Group space={2}>
-              <Button variant="ghost" colorScheme="blueGray" onPress={close}>
-                Annuler
-              </Button>
-              <Button isDisabled={!submit} onPress={() => {
-                submit();
-                close();
-              }}>
-                {submitLabel}
-              </Button>
-            </Button.Group>
-          </Modal.Footer>
-        </Modal.Content>
-      </Modal>
+            ) : null
+          }
+        </Modal.Body>
+        <Modal.Footer>
+          <Button.Group space={2}>
+            <Button variant="ghost" colorScheme="blueGray" onPress={close}>
+              Annuler
+            </Button>
+            <Button isDisabled={!submit} onPress={() => {
+              submit();
+              close();
+            }}>
+              {submitLabel}
+            </Button>
+          </Button.Group>
+        </Modal.Footer>
+      </Modal.Content>
+    </Modal>
   )
 }
 
