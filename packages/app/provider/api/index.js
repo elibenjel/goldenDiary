@@ -1,2 +1,2 @@
 export { DiaryProvider, useDiary } from './DiaryProvider';
-export { SpendingHistoryProvider, useSpendingHistory } from './SpendingHistoryProvider';
+export { SpendingProvider, useSpendingHistory, useSpendingActions } from './SpendingProvider';

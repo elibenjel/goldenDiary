@@ -1,11 +1,11 @@
-import React from "react";
-import { Box, FormControl, HStack, Image } from "native-base";
-import { Icon } from "../Icon";
-import { Feather } from "../../assets/icons";
-import { TextSecondary } from '../Typography';
+import React from 'react';
+import { Box, FormControl, HStack, Image, Text } from 'native-base';
+
+import { Icon } from './Icon';
+import { Feather } from '../../assets/icons';
 
 export const FormControlledImage = (props) => {
-  const { label, labelLeftIcon, uris, children, ...other } = props;
+  const { label, labelLeftIcon, uris, updateController, ...other } = props;
 
   return (
     <FormControl w={'100%'} {...other}>
@@ -21,7 +21,7 @@ export const FormControlledImage = (props) => {
         <HStack alignItems="center" justifyContent="flex-start">
           {
             !uris?.length ?
-            <TextSecondary>Ajouter une facture</TextSecondary> :
+            <Text>Ajouter une facture</Text> :
             uris.map((uri, i) => (
               <Box key={uri} mr={1}>
               {
@@ -33,7 +33,7 @@ export const FormControlledImage = (props) => {
             )).slice(0, 3)
           }
         </HStack>
-        {children}
+        { updateController }
       </HStack>
     </FormControl>
   )

@@ -1,9 +1,8 @@
-import React from "react";
-import { Box, FormControl, HStack, WarningOutlineIcon } from "native-base";
+import React from 'react';
+import { Box, FormControl, HStack, WarningOutlineIcon } from 'native-base';
 
 export const FormControlledInput = (props) => {
-  const { label, labelLeftIcon, errorMessage = '', value, children, ...other } = props;
-  const isInvalid = value !== '' && errorMessage.length > 0;
+  const { label, labelLeftIcon, isInvalid, errorMessage = '', children, ...other } = props;
 
   return (
     <FormControl isInvalid={isInvalid} w={'100%'} {...other}>

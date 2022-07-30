@@ -16,7 +16,8 @@ The main providers provide the app with basic features, such as authentication m
 [NavigationProvider](./packages/app/provider/navigation/index.js)<br>
 --- NativeBaseProvider<br>
 ------- [AuthProvider](./packages/app/provider/authentication/index.js)<br>
------------ [DiaryProvider](./packages/app/provider/api/DiaryProvider.js)<br>
+----------- [RealmProvider]()<br>
+--------------- [DiaryProvider](./packages/app/provider/api/DiaryProvider.js)<br>
 
 ## NavigationProvider
 
@@ -40,7 +41,35 @@ Provide the following values:
 3. **signOut**( ): logout the current user from the realm app
 4. **user**: the current logged in user, or null if there is none
 
+## RealmProvider
+
+This provider opens the realm containing the app data and allow for modifications of this data. It also creates one Diary object if it does not already exists, and does not allow creation/deletion of an object of that type.
+
+The realm data can be modified by a descendant only by calling a function provided by this provider. Such functions (create, update, remove) do not directly modify the data, instead they add the desired modification as a function in a queue variable. The data is modified only when all modifications belonging to the same global operation are added to the queue, which is known using the openTransaction state, by an increment/decrement mechanism.
+
+This provider maintains the following states:
+1. **realmRef**: a ref to the opened realm
+1. **openTransaction**: a positive int
+    - if zero, any modification of the realm is forbidden
+    - each time a descendant calls **beginTransaction**, it increases this value by 1
+    - call to **endTransaction** decreases this value by 1
+    - when a call to **endTransaction** brings this value to zero, the operations in the queue are written to the realm with realm.write
+1. **queue**: a list of functions to execute sequentially when openTransaction goes from 1 to 0
+
+Provide the following values:
+1. **query**( objectType, filters ): returns the objects of the specified type, applying the filters if provided
+1. **create**( objectType, objectData )
+1. **update**( object, updator )
+1. **remove**( object )
+1. **beginTransaction**( ): increment openTransaction by 1
+1. **endTransaction**( ): decrement openTransaction by 1
+
 ## DiaryProvider
+
+Use the following values from RealmProvider:
+1. **beginTransaction**
+1. **endTransaction**
+1. **update**: to add a new spending category
 
 Provide the following values:
 1. **diaryActions** (with useDiaryActions hook)
@@ -109,7 +138,13 @@ Maintain the following states:
     - undefined if there is none
     - null if the user wants to create a new one
     - otherwise, the spending the user wants to modify
-2. **userInputs**: object keeping track of the new values the user wants to give to the spending they are modifying/creating
+2. **userInputs**: object keeping track of the new values the user wants to give to the spending they are modifying/creating, as well as if they are valid or not
+    - [name of a field]
+        - value
+        - valid
+        - setter: function to change the current value and check if it is valid
+        - errorMessage
+3. **showInputErrors**: initially false, becomes true if the user tries to submit a invalid value
 3. **formattingOptions**: object to keep track of the display options the user wants for the history of spendings (sort, filter, group, search)
 4. **spendingHistory**: the formatted list of spending to show to the user
 5. **spendingToDelete**: set to the spending the user wants to delete, in which case ModalConfirmation is opened to cancel or validate the operation, or undefined otherwise
@@ -122,6 +157,12 @@ Use the following provider values:
 1. **diary**: from DiaryProvider, needed to know the default currency of the current user when creating a new spending
 2. **user**: from AuthProvider, needed to know which spending we can read/write
 3. **diaryActions.addSpendingCategory** called in the submit function provided to descendants if the user did input a new spending category
+4. **query**: to get the current list of spending, in a raw format
+5. **create**: to create a new spending
+6. **update**: to update an existing spending
+7. **remove**: to remove a spending
+1. **beginTransaction**
+1. **endTransaction**
 
 Provide the following values:
 1. **spendingHistory** (with useSpendingHistory hook)
@@ -131,8 +172,7 @@ Provide the following values:
 3. **spendingActions** (with useSpendingActions hook)
     - **focused**: **focusedSpending**
     - **userInputs**
-    - **setters**: object of setters for various data fields of a spending (setName, setDate, setBills, etc...)
-    - **submit**( ): create a new spending with the current focusedSpendingChanges if the focusedSpending is null, or update the focusedSpending if it already exists
+    - **submit**( ): if any userInput is invalid, set showError to true create a new spending with the current focusedSpendingChanges if the focusedSpending is null, or update the focusedSpending if it already exists
     - **delete**( spending ): set spendingToDelete to the one given in argument
     - **focus**( spending ): focus the spending given in argument, or set focusedSpending to null if no argument is given
     - **blur**( ): set focusedSpending to undefined
@@ -199,7 +239,6 @@ Use the following provider values:
 Use the following provider values:
 1. **spendingActions.focused** to know if the Modal must be opened or not (not if undefined)
 2. **spendingActions.userInputs** to keep track of the values to display in the FormConctrolled components
-3. **spendingActions.setters** for the change events of those components
 4. **spendingActions.submit** for the onPress event of Button [2]
 5. **spendingActions.blur** called after submit, or as the onPress event of Button [1]
 6. **camera.trigger** for the onPress event of Icon

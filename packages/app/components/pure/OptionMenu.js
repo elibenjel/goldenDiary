@@ -1,14 +1,16 @@
-import React from "react";
-import { Box, Menu, Pressable } from "native-base";
-import { Icon } from "./Icon";
+import React from 'react';
+import { Box, Menu, Pressable } from 'native-base';
+
+import { Icon } from './Icon';
 
 export const OptionMenu = ({
   IconProps,
-  groups
+  groups,
+  ...other
 }) => {
   return (
     <Box alignItems="flex-start">
-      <Menu closeOnSelect={false} defaultIsOpen={false} placement="left" trigger={triggerProps => {
+      <Menu closeOnSelect={false} defaultIsOpen={false} {...other} trigger={triggerProps => {
         return (
           <Pressable {...triggerProps}>
             <Icon {...IconProps} />
@@ -18,10 +20,10 @@ export const OptionMenu = ({
         {
           groups.map(({
             items,
-            ...groupProps
+            props
           }) => {
             return (
-              <Menu.OptionGroup {...groupProps}>
+              <Menu.OptionGroup key={props.title} {...props}>
                 {
                   items.map(({ value, label }) => {
                     return <Menu.ItemOption key={value} value={value}>{label}</Menu.ItemOption>;

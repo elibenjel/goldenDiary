@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation as useNavigationRN, useRoute } from '@react-navigation/native';
 import { Menu, Pressable } from 'native-base';
 import { useRouter } from 'solito/router';
 import { createParam } from 'solito';
 // import * as Linking from 'expo-linking';
 
+import { Icon } from '../../components/pure';
 import { FontAwesome } from '../../assets/icons';
-import { Icon } from '../../components/Icon';
 
 const HeaderRight = () => {
   return (
@@ -25,7 +25,7 @@ const HeaderRight = () => {
 }
 
 export const useSetHeaderRightLayoutEffect = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigationRN();
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: HeaderRight,
@@ -71,7 +71,7 @@ export const NavigationProvider = ({ children }) => {
           }),
           []
         )}
-        onStateChange={(newState) => setNavigationState(newState)}
+        // onStateChange={(newState) => setNavigationState(newState)}
       >
         {children}
       </NavigationContainer>

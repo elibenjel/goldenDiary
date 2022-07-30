@@ -1,14 +1,60 @@
-import React, { useContext, useState, useEffect, useRef } from "react";
+import React, { useContext, useState, useEffect, useRef } from 'react';
+import { ObjectId } from 'bson';
 import { Camera } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
-import { ObjectId } from 'bson';
-import { Icon } from "../../components/Icon";
+import { Button, HStack, Image, VStack, Box, Actionsheet } from 'native-base';
+
+import { Icon, ModalConfirmation } from '../../components/pure';
 import { MaterialCommunityIcons, Entypo } from '../../assets/icons';
-import { Button, Center, HStack, Image, Tooltip, VStack, Box, Actionsheet } from "native-base";
-import { base64image } from "./base64";
+import { base64image } from './base64';
 
 const CameraContext = React.createContext(null);
+
+const PictureTaker = ({
+  isOpen,
+  cameraRef,
+  onCameraReady,
+  close,
+  take
+}) => {
+  return (
+    <Actionsheet isOpen={isOpen}>
+      <Camera flex={1} width="100%" justifyContent="flex-end" alignItems="center" ref={cameraRef} onCameraReady={onCameraReady}>
+        <Box position="absolute" top={2} right={2}>
+          <Icon onPress={close} family={Entypo} name="cross" size="xs" color="white" />
+        </Box>
+        <Icon onPress={take} disabled={!true} family={MaterialCommunityIcons} name="camera" size={40} color="white" />
+      </Camera>
+    </Actionsheet>
+  )
+}
+
+const PictureReviewer = ({
+  isOpen,
+  close,
+  save,
+  isSaveDisabled,
+  photo
+}) => {
+  return (
+    <Actionsheet isOpen={isOpen}>
+      <HStack backgroundColor="gray.50" flex={1} alignItems="center" justifyContent="center">
+        <VStack backgroundColor="gray.50" flex={1} alignItems="center">
+          <Image
+            source={{
+              uri: "data:image/jpeg;base64," + photo?.base64
+            }} alt="Alternate Text" size="xl"
+          />
+        </VStack>
+        <HStack position="absolute" bottom={2} justifyContent="space-evenly">
+          <Button onPress={close} mr={2}>Retour</Button>
+          <Button onPress={save} isDisabled={isSaveDisabled}>Valider</Button>
+        </HStack>
+      </HStack>
+    </Actionsheet>
+  )
+}
 
 const CameraProvider = ({ saveDir : saveDirArg, children }) => {
   let cameraRef = useRef();
@@ -16,23 +62,27 @@ const CameraProvider = ({ saveDir : saveDirArg, children }) => {
   const [hasCameraPermission, setHasCameraPermission] = useState();
   const [hasMediaLibraryPermission, setHasMediaLibraryPermission] = useState();
   const [saveDirExists, setSaveDirExists] = useState(false);
-  const [showCamera, setShowCameraBase] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
+  const [photo, setPhoto] = useState();
+  const onSaveSuccessRef = useRef(() => null);
+  const [showCamera, f] = useState(false);
   const setShowCamera = (arg) => {
-    setShowCameraBase(arg);
+    f(arg);
     if (!arg) {
       setCameraReady(false);
+      onSaveSuccessRef.current = () => null;
     }
   }
-  const [cameraReady, setCameraReady] = useState(false);
-  const onSaveSuccessRef = useRef(() => null);
-  const [photo, setPhoto] = useState();
 
+  const [accessDenied, setAccessDenied] = useState(false);
+
+  // get the permissions necessary to use the camera and share pictures with the media library
   useEffect(() => {
     (async () => {
       const cameraPermission = await Camera.requestCameraPermissionsAsync();
       const dirInfo = await FileSystem.getInfoAsync(saveDir);
       if (!dirInfo.exists) {
-        console.log("Save directory doesn't exist, creating...");
+        console.log('Save directory doesn\'t exist, creating...');
         await FileSystem.makeDirectoryAsync(saveDir, { intermediates: true });
       }
       setSaveDirExists(true);
@@ -40,21 +90,6 @@ const CameraProvider = ({ saveDir : saveDirArg, children }) => {
       // setHasMediaLibraryPermission(mediaLibraryPermission.status === 'granted');
     })();
   }, []);
-
-  const renderCameraTrigger = () => {
-    if (!hasCameraPermission) {
-      return (
-        <Tooltip
-          label="Vous n'avez pas autorisé l'accès à la caméra ou aux photos. Vérifier les réglages de l'application."
-          openDelay={300}
-        >
-          <Icon family={MaterialCommunityIcons} name="camera-off" size="xs" />
-        </Tooltip>
-      )
-    }
-
-    return <Icon onPress={() => setShowCamera(true)} family={MaterialCommunityIcons} name="camera-plus" size="xs" />;
-  }
 
   const takePic = async () => {
     const options = {
@@ -71,50 +106,23 @@ const CameraProvider = ({ saveDir : saveDirArg, children }) => {
     })
   }
 
-  const renderCamera = () => {
-    if (!showCamera) return;
+  const savePic = () => {
+    const uri = saveDir + `${new ObjectId()}.jpeg`;
+    // FileSystem.copyAsync({ from : photo.uri, to : uri }).then(() => {
+    FileSystem.downloadAsync(photo.uri, uri).then(() => {
+      onSaveSuccessRef.current(uri);
+      setPhoto(undefined);
+      setShowCamera(false);
+    });
+  }
 
-    if (photo) {
-      const savePic = () => {
-        const uri = saveDir + `${new ObjectId()}.jpeg`;
-        // FileSystem.copyAsync({ from : photo.uri, to : uri }).then(() => {
-        FileSystem.downloadAsync(photo.uri, uri).then(() => {
-          setPhoto(undefined);
-          setShowCamera(false);
-          onSaveSuccessRef.current(uri);
-          onSaveSuccessRef.current = () => null;
-        });
-      }
-
-      return (
-        <Actionsheet isOpen={showCamera}>
-          <HStack backgroundColor="gray.50" flex={1} alignItems="center" justifyContent="center">
-            <VStack backgroundColor="gray.50" flex={1} alignItems="center">
-              <Image
-                source={{
-                  uri: "data:image/jpeg;base64," + photo.base64
-                }} alt="Alternate Text" size="xl"
-              />
-            </VStack>
-            <HStack position="absolute" bottom={2} justifyContent="space-evenly">
-              <Button onPress={() => setPhoto(undefined)} mr={2}>Retour</Button>
-              <Button onPress={() => savePic()} isDisabled={!saveDirExists}>Valider</Button>
-            </HStack>
-          </HStack>
-        </Actionsheet>
-      )
+  const open = (onSaveSuccess) => {
+    if (hasCameraPermission){
+      setShowCamera(true);
+      onSaveSuccessRef.current = onSaveSuccess;
+    } else {
+      setAccessDenied(true);
     }
-
-    return (
-      <Actionsheet isOpen={showCamera}>
-        <Camera flex={1} width="100%" justifyContent="flex-end" alignItems="center" ref={cameraRef} onCameraReady={() => setCameraReady(true)}>
-          <Box position="absolute" top={2} right={2}>
-            <Icon onPress={() => setShowCamera(false)} family={Entypo} name="cross" size="xs" color="white" />
-          </Box>
-          <Icon onPress={takePic} disabled={!true} family={MaterialCommunityIcons} name="camera" size={40} color="white" />
-        </Camera>
-      </Actionsheet>
-    )
   }
 
   // Render the children within the CameraContext's provider. The value contains
@@ -123,18 +131,35 @@ const CameraProvider = ({ saveDir : saveDirArg, children }) => {
   return (
     <CameraContext.Provider
       value={{
-        renderCameraTrigger,
-        renderCamera,
-        showCamera,
-        onSaveSuccessRef
+        open,
+        hasCameraPermission,
+        show: showCamera
       }}
     >
+      { children }
+      <PictureTaker
+        isOpen={showCamera}
+        cameraRef={cameraRef}
+        onCameraReady={() => setCameraReady(true)}
+        close={() => setShowCamera(false)}
+        take={takePic}
+      />
+      <PictureReviewer isOpen={!!photo} close={() => setPhoto(undefined)} save={savePic} isSaveDisabled={!saveDirExists} photo={photo} />
       {
-        children
+        accessDenied ?
+        <ModalConfirmation
+          show={true}
+          close={() => setAccessDenied(false)}
+          confirm={() => setAccessDenied(false)}
+          header="Accès à la caméra impossible"
+          body="Vous n'avez pas autorisé l'accès à la caméra ou aux photos. Changer ce paramètre dans les réglages de l'application."
+          confirmLabel="OK"
+        />
+        : null
       }
     </CameraContext.Provider>
   );
-};
+}
 
 // The useCamera hook can be used by any descendant of the CameraProvider. It
 // provides the diary of the user and functions to

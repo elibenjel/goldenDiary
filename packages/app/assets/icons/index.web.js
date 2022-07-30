@@ -1,4 +1,4 @@
-import { SunIcon } from "native-base";
+import { SunIcon } from 'native-base';
 
 const BaseIconFamily = ({ name, size, color }) => {
   return <SunIcon size={size} color={color} />;

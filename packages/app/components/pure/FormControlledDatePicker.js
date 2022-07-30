@@ -1,8 +1,9 @@
-import React from "react";
-import { Box, useTheme } from "native-base";
-import { Platform } from "react-native";
+import React from 'react';
+import { Platform } from 'react-native';
+import { Box, useTheme } from 'native-base';
 import DatePicker from 'react-native-datepicker';
-import { FormControlledInput } from "./FormControlledInput";
+
+import { FormControlledInput } from './FormControlledInput';
 
 const MyDatePicker = (props) => {
   const { date, onChange, ...other } = props;
@@ -71,14 +72,16 @@ const MyDatePicker = (props) => {
 }
 
 export const FormControlledDatePicker = (props) => {
-  const { label, state, labelLeftIcon, errorMessage, ...datePickerProps } = props;
-  const [date, setDate] = state;
+  const { label, labelLeftIcon, showError, control, errorMessage, ...datePickerProps } = props;
+  const { value, setters, valid } = control;
   return (
     <FormControlledInput
+      _ios={{ mt : 1 }} _web={{ mt : -1}} w={'100%'}
       label={label} labelLeftIcon={labelLeftIcon}
-      _ios={{ mt : 1 }} _web={{ mt : -1}} w={'100%'} errorMessage={errorMessage} value={date}
+      isInvalid={!valid && showError}
+      errorMessage={errorMessage}
     >
-      <MyDatePicker date={date} onChange={(date) => setDate(date)} {...datePickerProps} />
+      <MyDatePicker date={value} onChange={(date) => setters.change(date)} {...datePickerProps} />
     </FormControlledInput>
   )
 }

@@ -1,6 +1,8 @@
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, Budget, Spending, Simulation, Learn } from '../../screens';
 import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
+import { Home, Budget, Spending, Simulation, Learn } from '../../screens';
+
 import { tabBarOptions } from './options';
 
 const Tab = createBottomTabNavigator();

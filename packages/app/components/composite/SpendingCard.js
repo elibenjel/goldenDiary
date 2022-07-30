@@ -1,7 +1,12 @@
 import React from 'react';
-import { Pressable, VStack, Center, Text } from 'native-base';
+import { Box, Pressable, VStack, Center, Text } from 'native-base';
+
+import { Icon } from '../pure';
+import { Entypo } from '../../assets/icons';
 
 import { useSpendingActions } from '../../provider/api';
+
+import { fromDateToDict } from '../../utils/date';
 
 export const SpendingCard = ({
   spending,
@@ -38,11 +43,11 @@ export const SpendingCard = ({
               name="cross"
               size="xs"
               color="black"
-              onPress={remove}
+              onPress={() => remove(spending)}
             />
           </Center>
           <Center position="absolute" left="1" bottom="0">
-            <Text fontSize="10" fontWeight="500" color="red.900">{spending.when}</Text>
+            <Text fontSize="10" fontWeight="500" color="red.900">{fromDateToDict(spending.when).toString()}</Text>
           </Center>
           <Center position="absolute" bottom="30%" right="20">
             <Text fontSize="2xl">{spending.amount}€</Text>

@@ -1,6 +1,6 @@
-import React from "react";
-import { IconButton } from "native-base";
-import { Platform } from "react-native";
+import React from 'react';
+import { Platform } from 'react-native';
+import { IconButton } from 'native-base';
 
 const ICON_SIZE = { xs : 20 }
 const ICON_SIZE_WEB = { xs : 10 };

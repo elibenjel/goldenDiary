@@ -1,19 +1,21 @@
 import React from 'react';
-import { MaterialCommunityIcons } from '../../assets/icons';
 
-import { useSpendingActions } from '../../provider/api';
-import { useCamera } from '../../provider/camera';
-import { ModalForm } from '../inputs';
+import { ModalForm } from '../wrapper';
 import {
+  Icon,
   FormControlledTextField,
   FormControlledSelect,
-  FormControlledDatePicker,
   FormControlledImage
-} from '../inputs';
+} from '../pure';
+import { MaterialCommunityIcons } from '../../assets/icons';
+
+import { useDiary, useSpendingActions } from '../../provider/api';
+import { useCamera } from '../../provider/camera';
 
 export const SpendingModal = () => {
-  const { userInputs, setters, focused : focusedSpending, blur, submit } = useSpendingActions();
-  const { show : showCamera, trigger } = useCamera();
+  const { userInputs, showInputErrors, focused : focusedSpending, blur, submit } = useSpendingActions();
+  const { show : showCamera, open, hasCameraPermission } = useCamera();
+  const diary = useDiary();
   return (
     <ModalForm
       show={focusedSpending !== undefined && !showCamera}
@@ -23,43 +25,76 @@ export const SpendingModal = () => {
       submitLabel={focusedSpending ? 'Modifier' : 'Ajouter'}
     >
       <FormControlledTextField
-        key="nameField"
-        state={[userInputs.name, setters.name]}
-        label="Nom" errorMessage={messages.name || ''}
+        id="nameField"
+        control={userInputs.name}
+        label="Nom"
         placeholder="Choisir un nom pour la dépense"
+        showError={showInputErrors}
         width={'100%'}
       />
       <FormControlledSelect
-        key="categorySelect"
-        state={[userInputs.category, setters.category]}
+        id="categorySelect"
+        control={userInputs.category}
         items={diary.spendingCategories.map(c => ({ label: c, value: c }))}
-        label="Catégorie" labelLeftIcon={
-          <Icon onPress={addSpendingCategoryModalState.openModal} family={AntDesign} name="plussquare" size={15} color="orange" />
-        }
-        placeholder="Choisir la catégorie de la dépense"
+        label="Catégorie"
+        placeholder="Choisir une catégorie existante ..."
+        showError={showInputErrors}
         width={'100%'}
       />
       <FormControlledTextField
-        key="amountField"
-        state={[userInputs.amount, setters.amount]}
-        label="Montant" errorMessage={messages.amount || ''}
-        placeholder="Montant de la dépense"
+        id="categoryField"
+        control={userInputs.newCategory}
+        placeholder="... ou créer une nouvelle catégorie"
+        showError={showInputErrors}
         width={'100%'}
       />
-      <FormControlledDatePicker key="datePicker" label="Date" state={[userInputs.date, setters.date]} width={'100%'} />
+      <FormControlledTextField
+        id="amountField"
+        control={userInputs.amount}
+        label="Montant"
+        placeholder="Montant de la dépense"
+        showError={showInputErrors}
+        width={'100%'}
+      />
+      {/* <FormControlledDatePicker
+        id="datePicker"
+        control={userInputs.date}
+        label="Date"
+        showError={showInputErrors}
+        width={'100%'}
+      /> */}
       <FormControlledImage
-        key="bills"
+        id="bills"
         label="Factures"
-        uris={[...userInputs.bills]}
-        cameraTrigger={
+        uris={[...userInputs.bills.value]}
+        updateController={
+          hasCameraPermission ?
           <Icon
-            onPress={trigger}
+            onPress={() => open((uri) => {
+              userInputs.bills.setters.addOne(uri);
+              console.log('added image to userInputs')
+            })}
             family={MaterialCommunityIcons}
             name="camera-plus"
             size="xs"
-          />
+          /> : <Icon onPress={open} family={MaterialCommunityIcons} name="camera-off" size="xs" />
         }
       />
     </ModalForm>
   )
+}
+
+const renderCameraTrigger = () => {
+  if (!hasCameraPermission) {
+    return (
+      <Tooltip
+        label="Vous n'avez pas autorisé l'accès à la caméra ou aux photos. Vérifier les réglages de l'application."
+        openDelay={300}
+      >
+        <Icon family={MaterialCommunityIcons} name="camera-off" size="xs" />
+      </Tooltip>
+    )
+  }
+
+  return <Icon onPress={() => setShowCamera(true)} family={MaterialCommunityIcons} name="camera-plus" size="xs" />;
 }

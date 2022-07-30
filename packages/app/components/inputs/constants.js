@@ -1,1 +1,0 @@
-export const MAX_FIELD_WIDTH = 300;

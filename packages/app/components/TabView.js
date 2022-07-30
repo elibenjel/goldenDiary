@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import { Stack } from "native-base";
-import { TabButton } from "./TabButton";
+import React, { useState } from 'react';
+import { Stack } from 'native-base';
+
+import { TabButton } from './TabButton';
 
 export const TabView = (props) => {
   const { router, direction, tabs, bg, bgFocused, tabIconColor, focusedTabIconColor, tabIconSize } = props;

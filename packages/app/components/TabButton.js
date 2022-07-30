@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, Stack } from 'native-base';
-import {Link as SolitoLink} from 'solito/link';
+import { Link as SolitoLink } from 'solito/link';
 
 export const TabButton = (props) => {
   const { direction, icon, bg, onPress, linkTo, children } = props;

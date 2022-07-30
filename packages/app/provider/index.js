@@ -1,18 +1,21 @@
-import React from 'react'
+import React from 'react';
+import { NativeBaseProvider } from 'native-base';
 
-import { NavigationProvider } from './navigation'
-import { NativeBaseProvider } from 'native-base'
-import { AuthProvider } from './authentication'
+import { NavigationProvider } from './navigation';
+import { AuthProvider } from './authentication';
 import { DiaryProvider } from './api';
+import { RealmProvider } from './realm';
 
 export function Provider({ children }) {
   return (
     <NavigationProvider>
       <NativeBaseProvider>
         <AuthProvider>
-          <DiaryProvider>
-            {children}
-          </DiaryProvider>
+          <RealmProvider>
+            <DiaryProvider>
+              {children}
+            </DiaryProvider>
+          </RealmProvider>
         </AuthProvider>
       </NativeBaseProvider>
     </NavigationProvider>

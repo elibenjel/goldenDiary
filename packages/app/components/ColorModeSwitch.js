@@ -1,11 +1,11 @@
-import React from 'react'
+import React from 'react';
 import {
   useColorMode,
   Tooltip,
   IconButton,
   SunIcon,
   MoonIcon,
-} from 'native-base'
+} from 'native-base';
 
 export function ColorModeSwitch() {
   const { colorMode, toggleColorMode } = useColorMode();

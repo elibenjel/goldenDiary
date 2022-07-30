@@ -1,6 +1,9 @@
-import { MaterialCommunityIcons, Feather, Ionicons, AntDesign } from '../assets/icons';
-import { SunIcon } from 'native-base';
 import React from 'react';
+import {
+  MaterialCommunityIcons,
+  Ionicons,
+  AntDesign
+} from '../assets/icons';
 
 const mainScreens = {};
 
