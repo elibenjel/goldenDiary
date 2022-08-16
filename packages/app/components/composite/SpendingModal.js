@@ -35,7 +35,7 @@ export const SpendingModal = () => {
       <FormControlledSelect
         id="categorySelect"
         control={userInputs.category}
-        items={diary.spendingCategories.map(c => ({ label: c, value: c }))}
+        items={diary?.spendingCategories.map(c => ({ label: c, value: c }))}
         label="Catégorie"
         placeholder="Choisir une catégorie existante ..."
         showError={showInputErrors}
@@ -82,19 +82,4 @@ export const SpendingModal = () => {
       />
     </ModalForm>
   )
-}
-
-const renderCameraTrigger = () => {
-  if (!hasCameraPermission) {
-    return (
-      <Tooltip
-        label="Vous n'avez pas autorisé l'accès à la caméra ou aux photos. Vérifier les réglages de l'application."
-        openDelay={300}
-      >
-        <Icon family={MaterialCommunityIcons} name="camera-off" size="xs" />
-      </Tooltip>
-    )
-  }
-
-  return <Icon onPress={() => setShowCamera(true)} family={MaterialCommunityIcons} name="camera-plus" size="xs" />;
 }

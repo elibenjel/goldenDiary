@@ -1,19 +1,39 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 
 import { useRealm } from '../realm';
+import { useAuth } from '../authentication';
 
 const DiaryContext = React.createContext(null);
 
 const DiaryProvider = ({ children }) => {
   const { beginTransaction, endTransaction, query, update } = useRealm();
+  const { user } = useAuth();
 
-  const [diary, setDiary] = useState(query('Diary')[0]);
+  const [diary, setDiary] = useState();
+
+
+  useEffect(() => {
+    setDiary(query('Diary')[0]);
+  }, [user, query]);
+
+  if (!diary) {
+    console.log('Diary object not yet created...')
+    return <></>;
+  }
+
+  console.log('diary: ', diary);
 
   const addSpendingCategory = (category) => {
     beginTransaction();
-    update(diary, 'Diary', {
-      spendingCategories: [...diary.spendingCategories, category]
-    }, () => setDiary(query('Diary')[0]));
+    update({
+      object: diary,
+      objectType: 'Diary',
+      newObjectData: {
+        spendingCategories: [...diary.spendingCategories, category]
+      },
+      onSuccess: () => setDiary(query('Diary')[0])
+    });
+
     endTransaction();
   }
 
@@ -160,7 +180,9 @@ const DiaryProvider = ({ children }) => {
 // The useDiary hook can be used by any descendant of the DiaryProvider. It
 // provides the diary of the user.
 const useDiary = () => {
+  console.log('using context')
   const provided = useContext(DiaryContext);
+  console.log(provided)
   if (provided == null) {
     throw new Error("useDiary() called outside of a DiaryProvider?"); // an alert is not placed because this is an error for the developer not the user
   }

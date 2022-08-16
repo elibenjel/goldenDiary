@@ -1,9 +1,23 @@
 import { ObjectId } from 'bson';
 
 import { getCurrentDate } from '../../utils/date';
+import { getFilenameFromURI } from '../../utils/formatting';
 
 export const MODELS_VERSION = 1;
 const CURRENCIES = ['€', '$'];
+
+const copyInstance = ({ source, replace, ignore, model }) => {
+  const objCopy = new model({});
+  Object.keys(model.schema.properties).forEach(k => {
+    if (k in replace) {
+      objCopy[k] = replace[k];
+    } else {
+      objCopy[k] = source[k];
+    }
+  });
+
+  return objCopy;
+}
 
 class Diary {
   /**
@@ -21,6 +35,10 @@ class Diary {
     this.updatedAt = getCurrentDate();
     this.spendingCategories = [];
     this.defaultCurrency = '€';
+  }
+
+  static copy(source, replace) {
+    return copyInstance({ source, replace, model : Diary });
   }
 
   // Check for the authorization to update any property of the object:
@@ -66,7 +84,7 @@ class Spending {
     currency,
     where = '',
     when,
-    bills = []
+    bills
   }) {
     this._owner = owner;
     this._id = id;
@@ -79,6 +97,11 @@ class Spending {
     this.when = when;
     this.where = where;
     this.bills = bills;
+  }
+
+  static copy(source, replace) {
+    const newObj = copyInstance({ source, replace, model : Spending });
+    return newObj;
   }
 
   // Check for the authorization to update any property of the object:
@@ -107,7 +130,10 @@ class Spending {
       currency: 'string',
       when: 'date',
       where: 'string?',
-      bills: 'string[]'
+      bills: {
+        type: 'list',
+        objectType: 'Bill'
+      }
     },
     primaryKey: '_id',
   };
@@ -116,37 +142,28 @@ class Spending {
 class Bill {
   /**
    *
-   * @param {string} owner The id of the user owning this bill, or 'local' if the user is local only
-   * @param {ObjectId} id The ObjectId to create this bill with
    * @param {string} uri The uri of this bill
-   * @param {string} spendingID The ID of the spending for which this bill was added
    */
   constructor({
-    owner = 'local',
-    uri,
-    spendingID
+    uri
   }) {
-    this._owner = owner;
-    this.createdAt = getCurrentDate();
-    this.updatedAt = getCurrentDate();
     this.uri = uri;
-    this.spendingIDs = [spendingID];
+    this.createdAt = getCurrentDate();
   }
 
-  static updateRules = {
-    'spendingIDs': (v) => true,
+  static copy(source, replace) {
+    return copyInstance({ source, model : Bill });
   }
+
+  static updateRules = {}
 
   static schema = {
     name: 'Bill',
+    embedded: true,
     properties: {
+      uri: "string",
       createdAt: 'date',
-      updatedAt: 'date',
-      _owner: 'string',
-      uri: 'string',
-      spendingIDs: 'objectId[]'
     },
-    primaryKey: 'uri',
   };
 }
 

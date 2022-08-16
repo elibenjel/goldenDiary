@@ -7,6 +7,8 @@ import { useAuth } from '../authentication';
 import { useRealm } from '../realm';
 import { useDiary, useDiaryActions } from './DiaryProvider';
 
+import { models } from '../realm/models';
+
 import { deepCopy } from '../../utils/data';
 import { getCurrentDate, getMonthString, getYear } from '../../utils/date';
 import { isNonNegativeValue } from '../../utils/validators';
@@ -86,6 +88,7 @@ const SpendingProvider = ({ children }) => {
   // retrieve from the RealmProvider the realm to read and write spending data 
   const { beginTransaction, endTransaction, query, queryForPrimaryKey, create, update, remove } = useRealm();
   const diary = useDiary();
+  console.log('from spendingProvider:', diary)
   const { addSpendingCategory } = useDiaryActions();
   const { user } = useAuth();
 
@@ -154,68 +157,75 @@ const SpendingProvider = ({ children }) => {
         }
       });
     }
+
+    setUserInputs(current => {
+      const newValue = { ...current };
+      
+      current.name.setters.change = onStringChange('name');
+      current.category.setters.change = (value) => {
+        const valid = value.length > 0;
+        setUserInputs((curr) => {
+          return {
+            ...curr,
+            newCategory : { ...curr.newCategory, value : '', valid : true},
+            category : { ...curr.category, value, valid }
+          }
+        });
+      }
+      current.newCategory.setters.change = (value) => {
+        const valid = value.length > 0;
+        setUserInputs((curr) => {
+          return {
+            ...curr,
+            category : { ...curr.category, value : '', valid : true},
+            newCategory : { ...curr.newCategory, value, valid }
+          }
+        });
+      }
   
-    userInputs.name.setters.change = onStringChange('name');
-    userInputs.category.setters.change = (value) => {
-      const valid = value.length > 0;
-      setUserInputs((current) => {
-        return {
-          ...current,
-          newCategory : { ...current.newCategory, value : '', valid : true},
-          category : { ...current.category, value, valid }
-        }
-      });
-    }
-    userInputs.newCategory.setters.change = (value) => {
-      const valid = value.length > 0;
-      setUserInputs((current) => {
-        return {
-          ...current,
-          category : { ...current.category, value : '', valid : true},
-          newCategory : { ...current.newCategory, value, valid }
-        }
-      });
-    }
-
-    userInputs.amount.setters.change = (value) => {
-      const valid = isNonNegativeValue(value);
-      setUserInputs((current) => {
-        return {
-          ...current,
-          amount : { ...current.amount, value, valid }
-        }
-      });
-    }
-
-    userInputs.date.setters.change = (value) => {
-      setUserInputs((current) => {
-        return {
-          ...current,
-          date : { ...current.date, value, valid }
-        }
-      });
-    }
-
-    userInputs.bills.setters = {
-      addOne: (uri) => {
-        const newValue = [...userInputs.bills.value, uri];
-        setUserInputs((current) => {
+      current.amount.setters.change = (value) => {
+        const valid = isNonNegativeValue(value);
+        setUserInputs((curr) => {
           return {
-            ...current,
-            bills : { ...current.bills, value : newValue }
+            ...curr,
+            amount : { ...curr.amount, value, valid }
           }
         });
-      },
-      removeOne: (uri) => {
-        const newValue = userInputs.bills.value.filter(v => v !== uri);
-        setUserInputs((current) => {
+      }
+  
+      current.date.setters.change = (value) => {
+        setUserInputs((curr) => {
           return {
-            ...current,
-            bills : { ...current.bills, value : newValue }
+            ...curr,
+            date : { ...curr.date, value, valid }
           }
         });
-      },
-    }
+      }
+  
+      current.bills.setters = {
+        addOne: (uri) => {
+          const newValue = [...current.bills.value, uri];
+          setUserInputs((curr) => {
+            return {
+              ...curr,
+              bills : { ...curr.bills, value : newValue }
+            }
+          });
+        },
+        removeOne: (uri) => {
+          const newValue = current.bills.value.filter(v => v !== uri);
+          setUserInputs((curr) => {
+            return {
+              ...curr,
+              bills : { ...curr.bills, value : newValue }
+            }
+          });
+        },
+      }
+      
+      return newValue;
+    });
+  
 
   console.log('SpendingProvider initialized: spendingHistory retrieved and setters for user inputs defined')
   setInitialized(true);
@@ -245,7 +255,7 @@ const SpendingProvider = ({ children }) => {
       newCategory: { value : '', valid : true },
       amount: { value : `${spending.amount}`, valid : true },
       date: { value : spending.when, valid : true },
-      bills: { value : [...spending.bills], valid : true },
+      bills: { value : spending.bills.map(sp => sp.uri), valid : true },
     }
 
     setUserInputs(current => {
@@ -260,6 +270,7 @@ const SpendingProvider = ({ children }) => {
 
   // if focus is called without arguments, we expressly set focusedSpending to null to create a new spending
   const focus = (spending) => {
+    console.log(spending)
     setFocusedSpending(spending || null);
     if (spending) {
       setUserInputsFromSpending(spending);
@@ -284,60 +295,165 @@ const SpendingProvider = ({ children }) => {
     bills
   }) => {
     const id = new ObjectId();
-    create('Spending', {
-      owner: user?.id,
-      id,
-      name,
-      amount,
-      category,
-      currency,
-      where: '',
-      when,
-      bills
-    }, formatSpendingHistory);
-    return id;
+    create({
+      objectType: 'Spending',
+      objectData: {
+        owner: user?.id,
+        id,
+        name,
+        amount,
+        category,
+        currency,
+        where: '',
+        when,
+        bills: bills.map(uri => new models.Bill({ uri }))
+      },
+      onSuccess: formatSpendingHistory
+    });
+
+  //   bills.forEach((uri, i) => {
+  //     const bill = queryForPrimaryKey('Bill', uri);
+  //     if (!bill) {
+  //       create({
+  //         objectType: 'Bill',
+  //         objectData: {
+  //           owner: user?.id,
+  //           uri
+  //         },
+  //         saveResTo: `bill-${i}`
+  //       });
+  //     }
+  //   });
+
+    
+  //   bills.forEach((uri, i) => {
+  //     const bill = queryForPrimaryKey('Bill', uri);
+  //     update({
+  //       objectType: 'Bill',
+  //       object: bill,
+  //       objectLazy: (savedResRef) => savedResRef.current[`bill-${i}`],
+  //       newObjectDataLazy: (savedResRef) => ({
+  //         spendingList: [savedResRef.current.createdSpending]
+  //       })
+  //     });
+  //   });
+
+  //   update({
+  //     objectType: 'Spending',
+  //     objectLazy: (savedResRef) => {
+  //       console.log(savedResRef);
+  //       return savedResRef.current.createdSpending;
+  //     },
+  //     newObjectDataLazy: (savedResRef) => ({
+  //       bills: bills.map((uri, i) => savedResRef.current[`bill-${i}`])
+  //     }),
+  //     onSuccess: formatSpendingHistory
+  //   });
   };
 
   const updateSpending = (spending, newData) => {
-    update(spending, 'Spending', newData, formatSpendingHistory);
-  }
+    // newData.bills.forEach((uri, i) => {
+    //   const bill = queryForPrimaryKey('Bill', uri);
+    //   if (!bill) {
+    //     create({
+    //       objectType: 'Bill',
+    //       objectData: {
+    //         owner: user?.id,
+    //         uri
+    //       },
+    //       saveResTo: `bill-${i}`
+    //     });
+    //   }
+    // });
 
-  const createBill = (
-    uri,
-    spendingID
-  ) => {
-    create('Bill', {
-      owner: user?.id,
-      uri,
-      spendingID
+    // const addedBills = [];
+    // const removedBills = [];
+    // const currentBills = [...spending.bills];
+    // currentBills.forEach(uri => {
+    //   if (!newData.includes(uri)) {
+    //     removedBills.push(uri);
+    //   }
+    // });
+
+    // newData.bills.forEach(uri => {
+    //   if (!currentBills.includes(uri)) {
+    //     addedBills.push(uri);
+    //   }
+    // });
+
+    // addedBills.forEach((uri, i) => {
+    //   update({
+    //     objectType: 'Bill',
+    //     objectLazy: (savedResRef) => savedResRef.current[`bill-${i}`],
+    //     newObjectDataLazy: (savedResRef) => {
+    //       const bill = savedResRef.current[`bill-${i}`];
+    //       return {
+    //         spendingList: [...bill.spendingList, spending]
+    //       }
+    //     }
+    //   });
+    // });
+
+    // removedBills.forEach((uri, i) => {
+    //   update({
+    //     objectType: 'Bill',
+    //     objectLazy: (savedResRef) => savedResRef.current[`bill-${i}`],
+    //     newObjectDataLazy: (savedResRef) => {
+    //       const bill = savedResRef.current[`bill-${i}`];
+    //       return {
+    //         spendingList: bill.spendingList.filter(sp => sp._id !== spending._id)
+    //       }
+    //     }
+    //   });
+    // });
+
+    update({
+      objectType: 'Spending',
+      object: spending,
+      newObjectData: {
+        ...newData,
+        bills: newData.bills.map(uri => new models.Bill({ uri }))
+      },
+      onSuccess: formatSpendingHistory
     });
   }
 
-  const assignBillToSpending = (
-    uri,
-    spendingID
-  ) => {
-    const bill = queryForPrimaryKey('Bill', uri);
-    if (bill) {
-      update(bill, 'Bill', {
-        spendingIDs: [...bill.spendingIDs, spendingID]
-      });
-    } else {
-      createBill(uri, spendingID);
-    }
-  }
+  // const createBill = ({
+  //   uri,
+  //   spending
+  // }, resKey) => {
+  //   create('Bill', {
+  //     owner: user?.id,
+  //     uri,
+  //     spending
+  //   }, () => null, resKey);
+  // }
 
-  const removeBillFromSpending = (
-    uri,
-    spendingID
-  ) => {
-    const bill = queryForPrimaryKey('Bill', uri);
-    if (bill) {
-      update(bill, 'Bill', {
-        spendingIDs: bill.spendingIDs.filter((id) => id !== spendingID)
-      });
-    }
-  }
+  // const assignBillToSpending = ({
+  //   uri,
+  //   spending
+  // }, resKey) => {
+  //   const bill = queryForPrimaryKey('Bill', uri);
+  //   if (bill) {
+  //     update(bill, 'Bill', {
+  //       spendingList: [...bill.spendingList, spending]
+  //     }, () => null, resKey);
+  //   } else {
+  //     createBill({ uri, spending }, resKey);
+  //   }
+  // }
+
+  // const removeBillFromSpending = ({
+  //   uri,
+  //   spending
+  // }) => {
+  //   const bill = queryForPrimaryKey('Bill', uri);
+  //   if (bill) {
+  //     update(bill, 'Bill', {
+  //       spendingList: bill.spendingList.filter((sp) => sp._id !== spending._id)
+  //     });
+  //   }
+  // }
   
   const submitUserInputs = () => {
     const valid = Object.values(userInputs).every(({ valid }) => valid);
@@ -347,8 +463,6 @@ const SpendingProvider = ({ children }) => {
     }
 
     let addNewCategory = false;
-    let addedBills = [];
-    let removedBills = [];
     const newData = Object.entries(userInputs).reduce((previous, [property, { value, cast }]) => {
       const next = { ...previous };
 
@@ -370,26 +484,6 @@ const SpendingProvider = ({ children }) => {
             return next;
           }
           break;
-        case 'bills':
-          if (focusedSpending === null) {
-            addedBills = [ ...value ];
-            break;
-          }
-
-          const currentBills = [...focusedSpending.bills];
-          currentBills.forEach(uri => {
-            if (!value.includes(uri)) {
-              removedBills.push(uri);
-            }
-          });
-
-          value.forEach(uri => {
-            if (!currentBills.includes(uri)) {
-              addedBills.push(uri);
-            }
-          });
-          prop = property;
-          break;
         default:
           break;
       }
@@ -403,22 +497,11 @@ const SpendingProvider = ({ children }) => {
       addSpendingCategory(newData.category);
     }
 
-    let spendingID;
     if (focusedSpending === null) {
-      spendingID = createSpending(newData);
+      createSpending(newData);
     } else {
-      spendingID = focusedSpending._id;
-      console.log(newData);
       updateSpending(focusedSpending, newData);
     }
-
-    addedBills.forEach(uri => {
-      console.log('adding bill to focused spending ...')
-      assignBillToSpending(uri, spendingID);
-    });
-    removedBills.forEach(uri => {
-      removeBillFromSpending(uri, spendingID);
-    });
 
     endTransaction();
 
@@ -427,7 +510,6 @@ const SpendingProvider = ({ children }) => {
   }
 
   const removeSpending = (spending) => {
-    console.log(spending)
     setSpendingToRemove(spending);
   }
   

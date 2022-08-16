@@ -6,8 +6,10 @@ import { Icon } from '../../components/pure/Icon';
 import { SearchBar, SpendingList, SpendingModal } from '../../components/composite';
 
 import { useSpendingActions } from '../../provider/api';
+import { useSetHeaderRightLayoutEffect } from '../../provider/navigation';
 
 export const Spending = () => {
+  useSetHeaderRightLayoutEffect();
   const { focus } = useSpendingActions();
   return (
     <>

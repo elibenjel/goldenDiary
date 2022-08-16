@@ -9,28 +9,49 @@ import { createParam } from 'solito';
 import { Icon } from '../../components/pure';
 import { FontAwesome } from '../../assets/icons';
 
-const HeaderRight = () => {
+import { useAuth } from '../authentication';
+
+const HeaderRight = ({ user, signIn, signUp, signOut }) => {
+  // const user = false;
+  // const signIn = () => null;
+  // const signUp = () => null;
   return (
     <Menu defaultIsOpen={false} placement="left" trigger={triggerProps => {
       return (
         <Pressable {...triggerProps}>
-          <Icon family={FontAwesome} name="user" size="xs" />
+          <Icon family={FontAwesome} name="user" size="xs" color="white" />
         </Pressable>
       )
     }}>
-      <Menu.Item>S'identifier</Menu.Item>
-      <Menu.Item>S'inscrire</Menu.Item>
+      {
+        user ?
+        <Menu.Item onPress={signOut}>Se déconnecter</Menu.Item>
+        : (
+          <>
+            <Menu.Item onPress={signIn}>S'identifier</Menu.Item>
+            <Menu.Item onPress={signUp}>S'inscrire</Menu.Item>
+          </>
+        )
+      }
     </Menu>
   )
 }
 
 export const useSetHeaderRightLayoutEffect = () => {
   const navigation = useNavigationRN();
+  const { user, signIn, signUp, signOut } = useAuth();
   React.useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: HeaderRight,
+      headerRight: () => (
+        <HeaderRight
+          user={user}
+          signIn={signIn}
+          signUp={signUp}
+          signOut={signOut}
+        />
+      ),
     });
-  }, [navigation]);
+  }, [navigation, user]);
 }
 
 const NavigationContext = React.createContext(null);

@@ -8,17 +8,17 @@ import { RealmProvider } from './realm';
 
 export function Provider({ children }) {
   return (
-    <NavigationProvider>
-      <NativeBaseProvider>
-        <AuthProvider>
-          <RealmProvider>
-            <DiaryProvider>
-              {children}
-            </DiaryProvider>
-          </RealmProvider>
-        </AuthProvider>
-      </NativeBaseProvider>
-    </NavigationProvider>
+    <NativeBaseProvider>
+      <AuthProvider>
+        <NavigationProvider>
+              <RealmProvider>
+                <DiaryProvider>
+                  {children}
+                </DiaryProvider>
+              </RealmProvider>
+        </NavigationProvider>
+      </AuthProvider>
+    </NativeBaseProvider>
   )
 }
 
