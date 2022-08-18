@@ -9,7 +9,9 @@ const CURRENCIES = ['€', '$'];
 const copyInstance = ({ source, replace, ignore, model }) => {
   const objCopy = new model({});
   Object.keys(model.schema.properties).forEach(k => {
-    if (k in replace) {
+    if (k === '_id') {
+      objCopy[k] = new ObjectId();
+    } else if (k in replace) {
       objCopy[k] = replace[k];
     } else {
       objCopy[k] = source[k];
@@ -177,4 +179,8 @@ export const isUpdateAllowed = (objectType, newObjectData) => {
       rules[property](updatedValue)  // and did provide a valid new value
     )
   });
+}
+
+export const isOwned = (object, owner) => {
+  return owner ? object._owner === owner : object._owner === 'local';
 }

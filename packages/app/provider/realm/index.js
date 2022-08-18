@@ -11,31 +11,30 @@ const RealmContext = React.createContext(null);
 const RealmProvider = ({ children }) => {
   const { user } = useAuth();
 
-  const localRealmRef = useRef();
-  const syncRealmRef = useRef();
-  const realmRef = useRef();
-  const [version, setVersionAlt] = useState(0);
-  const setVersion = (arg) => {
-    console.log(version);
-    setVersionAlt(arg);
-  }
+  const [localRealm, setLocalRealm] = useState();
+  const [syncRealm, setSyncRealm] = useState();
+  const lastUserIDRef = useRef(user?.id);
+  // const [version, setVersionAlt] = useState(0);
+  // const setVersion = (arg) => {
+  //   setVersionAlt(arg);
+  // }
   const openTransactionRef = useRef(0);
   const queueRef = useRef([]);
   const savedResRef = useRef([]);
   const invalidTransactionRef = useRef(false);
 
   const closeLocalRealm = () => {
-    if (localRealmRef.current) {
-      localRealmRef.current.close();
-      localRealmRef.current = undefined;
+    if (localRealm) {
+      localRealm.close();
+      setLocalRealm(undefined);
       console.log('Local realm closed');
     }
   }
 
   const closeSyncRealm = () => {
-    if (syncRealmRef.current) {
-      syncRealmRef.current.close();
-      syncRealmRef.current = undefined;
+    if (syncRealm) {
+      syncRealm.close();
+      setSyncRealm(undefined);
       console.log('Sync realm closed');
     }
   }
@@ -52,13 +51,13 @@ const RealmProvider = ({ children }) => {
 
     // Enables offline-first: open the realm immediately locally without waiting 
     // for the download of the synchronized realm to be completed.
-    const syncConfig = {
-      path: 'sync.realm',
+    const getSyncConfig = (userID) => ({
+      path: `sync.${userID}.realm`,
       schemaVersion: MODELS_VERSION,
       schema: Object.values(models).map(m => m.schema),
       sync: {
         user,
-        partitionValue: user?.id,
+        partitionValue: userID,
         newRealmFileBehavior: {
           type: 'downloadBeforeOpen'
         },
@@ -66,89 +65,61 @@ const RealmProvider = ({ children }) => {
           type: 'openImmediately'
         }
       }
-    }
+    })
 
     let onRealmOpened;
     if (!user) {
+      console.log('No user')
       config = localConfig;
-      if (Realm.exists(syncConfig)) {
+      if (lastUserIDRef.current && Realm.exists(getSyncConfig(lastUserIDRef.current))) {
         // delete the sync realm file if no user is logged in, it will be recreated/redownloaded on log in
-        Realm.deleteFile(syncConfig);
+        Realm.deleteFile(getSyncConfig(lastUserIDRef.current));
+        lastUserIDRef.current = undefined;
       }
 
       onRealmOpened = (openedRealm) => {
-        localRealmRef.current = openedRealm;
-        setVersion(v => v + 1);
+        setLocalRealm(openedRealm);
       }
 
     } else {
       // if their is a user logged in, open a synced realm
-      config = syncConfig;
+      lastUserIDRef.current = user.id;
+      config = getSyncConfig(user.id);
 
-      // if the sync realm already exists, do nothing and set the state variable
-      // if (Realm.exists(config)) {
-      //   onRealmOpened = (openedRealm) => {
-      //     if (openedRealm.objects('Diary').length === 0) {
-      //       console.log('Sync realm corrupted, deleting...');
-      //       openedRealm.close();
-      //       Realm.deleteFile(syncConfig);
-      //     } else {
-      //       console.log('Sync realm already exists. Opening...');
-      //       setSyncRealm(openedRealm);
-      //     }
-      //   }
-      // } else {
-        onRealmOpened = (openedRealm) => {
-          console.log('Finished download of the sync realm')
-          console.log(openedRealm);
-          syncRealmRef.current = openedRealm;
-          // if after download from App Services, the sync realm is empty, close it, open the local realm
-          // and copy all the objects to the sync config, with the necessary changes to their properties
-          if (openedRealm.objects('Diary').length === 0) {
-            const copyLocalToSync = (localRealm) => {
-              console.log('Copying local realm to sync realm...');
-              console.log('Copying Diary object...');
-              const replace = { _owner : `${user.id}` };
-              openedRealm.write(() => {
-                const diary = localRealm.objects('Diary')[0];
-                openedRealm.create(
-                  'Diary',
-                  models.Diary.copy(diary, replace)
-                )
-              });
+      onRealmOpened = (openedRealm) => {
+        console.log('Finished download of the sync realm');
+        // if after download from App Services, the sync realm is empty, open the local realm
+        // and copy all the objects from it, with the necessary changes to their properties
+        if (openedRealm.objects('Diary').length === 0) {
+          console.log('Copying local realm to sync realm...');
+          console.log('Copying Diary object...');
+          const replace = { _owner : `${user.id}` };
+          openedRealm.write(() => {
+            const diary = localRealm.objects('Diary')[0];
+            openedRealm.create(
+              'Diary',
+              models.Diary.copy(diary, replace)
+            )
+          });
 
-              const spending = localRealm.objects('Spending');
-              console.log('Copying Spending objects...');
-              openedRealm.write(() => {
-                spending.forEach(sp => {
-                  const spendingCopy = models.Spending.copy(sp, replace);
+          const spending = localRealm.objects('Spending');
+          console.log('Copying Spending objects...');
+          openedRealm.write(() => {
+            spending.forEach(sp => {
+              const spendingCopy = models.Spending.copy(sp, replace);
+              openedRealm.create(
+                'Spending',
+                spendingCopy
+              );
+            });
+          });
 
-                  openedRealm.create(
-                    'Spending',
-                    spendingCopy
-                  );
-                });
-              });
+          console.log('Sync realm built');
 
-              console.log('Sync realm built');
-              setVersion(v => v + 1);
-            }
-            
-            if (localRealmRef.current) {
-              copyLocalToSync(localRealmRef.current);
-            } else {
-              Realm.open(localConfig).then(localRealm => {
-                copyLocalToSync(localRealm);
-                localRealm.close();
-              }).catch((e) => {
-                console.log(e);
-              });
-            }
-          } else {
-            setVersion(v => v + 1);
-          }
         }
-      // }
+
+        setSyncRealm(openedRealm);
+      }
     }
 
     // open a realm to manage the diary of the user
@@ -161,14 +132,12 @@ const RealmProvider = ({ children }) => {
     });
   }, [user]);
 
-  // if the local realm has no Diary object, create one
   useEffect(() => {
-    if (!localRealmRef.current || localRealmRef.current.objects('Diary').length > 0) {
+    if (!localRealm || localRealm.objects('Diary').length > 0) {
       return;
     }
 
-    const realm = localRealmRef.current;
-
+    const realm = localRealm;
     // If no Diary object has been created yet in the local realm, do it here
     realm.write(() => {
       realm.create(
@@ -176,23 +145,38 @@ const RealmProvider = ({ children }) => {
         new models.Diary({})
       );
     });
-  });
+  }, [localRealm]);
+
+  useEffect(() => {
+    if (user && syncRealm) {
+      closeLocalRealm();
+    }
+
+    if (!user && localRealm) {
+      closeSyncRealm();
+    }
+  }, [user, localRealm, syncRealm]);
 
   // Wait for the realm to open before mounting the children and wrapping them in the RealmContext
   // by returning empty JSX if it is not
-  if ((!user && !localRealmRef.current) || (user && !syncRealmRef.current)) {
-    console.log(user, localRealmRef.current, syncRealmRef.current)
+  if ((!user && !localRealm) || (user && !syncRealm)) {
     console.log('Realm not yet opened');
-    return <></>;
+    return (
+      <RealmContext.Provider
+        value={{}}
+      >
+        {children}
+      </RealmContext.Provider>
+    )
   }
   
   let realm;
   if (user) {
-    realm = syncRealmRef.current;
-    closeLocalRealm();
+    realm = syncRealm;
+    // closeLocalRealm();
   } else {
-    realm = localRealmRef.current;
-    closeSyncRealm();
+    realm = localRealm;
+    // closeSyncRealm();
   }
 
   // Query the realm for an objectType, and format the result according to different options:
@@ -357,13 +341,7 @@ const RealmProvider = ({ children }) => {
         update,
         remove,
         beginTransaction,
-        endTransaction,
-        // assignBillToSpending,
-        // removeBillFromSpending,
-        // addSpendingCategory,
-        // createSpending,
-        // updateSpending,
-        // removeSpending
+        endTransaction
       }}
     >
       {children}

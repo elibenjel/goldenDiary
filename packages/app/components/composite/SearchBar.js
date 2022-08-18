@@ -27,7 +27,7 @@ const t = (arg) => {
 }
 
 export const SearchBar = (props) => {
-  const { formattingOptions : options, format } = useSpendingHistory()
+  const { formattingOptions : options, format = () => null } = useSpendingHistory();
   const { placeholder } = props;
 
   const onFilterChange = (filter) => {
@@ -56,7 +56,7 @@ export const SearchBar = (props) => {
         <FormControlledTextField
           placeholder={placeholder}
           control={{
-            value: options.search,
+            value: options?.search,
             setters: { change : onSearchChange },
             valid: true
           }}
@@ -67,12 +67,12 @@ export const SearchBar = (props) => {
       <HStack w="20%" justifyContent="space-evenly">
         <OptionMenu
           placement="left"
-          IconProps={{ family : Ionicons, name : 'filter', size : 'xs' }}
+          IconProps={{ family : Ionicons, name : 'filter', size : 'xs', isDisabled: !options }}
           groups={[
             {
               items: POSSIBLE_GROUP_VALUES.map(v => ({ value : v, label : t(v) })),
               props: {
-                value: options.group,
+                value: options?.group,
                 onChange: onGroupChange,
                 title: 'Grouper',
                 type: 'radio'
@@ -81,7 +81,7 @@ export const SearchBar = (props) => {
             {
               items: [], // POSSIBLE_FILTER_VALUES.map(v => ({ value : v, label : t(v) })),
               props: {
-                value: options.filter,
+                value: options?.filter,
                 onChange: onFilterChange,
                 title: 'Filtrer',
                 type: 'checkbox'
@@ -91,12 +91,12 @@ export const SearchBar = (props) => {
         />
         <OptionMenu
           placement="left"
-          IconProps={{ family : MaterialCommunityIcons, name : 'swap-vertical', size : 'xs' }}
+          IconProps={{ family : MaterialCommunityIcons, name : 'swap-vertical', size : 'xs', isDisabled: !options }}
           groups={[
             {
               items: POSSIBLE_SORT_VALUES.map(v => ({ value : v, label : t(v) })),
               props: {
-                value: options.sort,
+                value: options?.sort,
                 onChange: onSortChange,
                 title: 'Trier',
                 type: 'radio'
@@ -105,7 +105,7 @@ export const SearchBar = (props) => {
             {
               items: [{ value : true, label : 'Décendant' }, { value : false, label : 'Ascendant' }],
               props: {
-                value: options.descending,
+                value: options?.descending,
                 onChange: onSortOrderChange,
                 title: 'Ordre',
                 type: 'radio'

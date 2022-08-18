@@ -86,14 +86,14 @@ const defaultUserInputs = {
 
 const SpendingProvider = ({ children }) => {
   // retrieve from the RealmProvider the realm to read and write spending data 
-  const { beginTransaction, endTransaction, query, queryForPrimaryKey, create, update, remove } = useRealm();
+  const { beginTransaction, endTransaction, query, create, update, remove } = useRealm();
   const diary = useDiary();
-  console.log('from spendingProvider:', diary)
   const { addSpendingCategory } = useDiaryActions();
   const { user } = useAuth();
 
-  // This component needs to run an initialization effect before mounting the children
-  const [initialized, setInitialized] = useState(false);
+  // This component needs to run an initialization effect:
+  // at the end of the initialization, this state is set to the user ID (undefined if no user is logged in)
+  const lastUserIDRef = useRef('not initialized');
 
   // Which spending is currently focused: undefined if none, null if the user wants to create
   // a new one, and the spending the user has clicked on otherwise
@@ -107,6 +107,7 @@ const SpendingProvider = ({ children }) => {
     group: 'month',
     search: ''
   });
+
   const [spendingHistory, setSpendingHistory] = useState();
   const [spendingToRemove, setSpendingToRemove] = useState();
 
@@ -141,7 +142,7 @@ const SpendingProvider = ({ children }) => {
 
   // run this initializer effect to format spendingHistory and to set the setters for userInput before mounting the children
   useEffect(() => {
-    if (initialized) {
+    if (!diary || !query || lastUserIDRef.current === user?.id) {
       return;
     }
 
@@ -227,13 +228,24 @@ const SpendingProvider = ({ children }) => {
     });
   
 
-  console.log('SpendingProvider initialized: spendingHistory retrieved and setters for user inputs defined')
-  setInitialized(true);
-  }, []);
+  console.log('SpendingProvider initialized: spendingHistory retrieved and setters for user inputs defined');
+  lastUserIDRef.current = user?.id;
+  }, [user, diary, query]);
 
   // Wait for the initializer effect to execute before mounting the children
-  if (!initialized) {
-    return <></>;
+  if (lastUserIDRef.current !== user?.id) {
+    return (
+      <SpendingContext.Provider
+        value={{
+          history: {
+          },
+          actions: {
+          }
+        }}
+      >
+        {children}
+      </SpendingContext.Provider>
+    )
   }
 
 
@@ -270,7 +282,6 @@ const SpendingProvider = ({ children }) => {
 
   // if focus is called without arguments, we expressly set focusedSpending to null to create a new spending
   const focus = (spending) => {
-    console.log(spending)
     setFocusedSpending(spending || null);
     if (spending) {
       setUserInputsFromSpending(spending);
@@ -310,103 +321,9 @@ const SpendingProvider = ({ children }) => {
       },
       onSuccess: formatSpendingHistory
     });
-
-  //   bills.forEach((uri, i) => {
-  //     const bill = queryForPrimaryKey('Bill', uri);
-  //     if (!bill) {
-  //       create({
-  //         objectType: 'Bill',
-  //         objectData: {
-  //           owner: user?.id,
-  //           uri
-  //         },
-  //         saveResTo: `bill-${i}`
-  //       });
-  //     }
-  //   });
-
-    
-  //   bills.forEach((uri, i) => {
-  //     const bill = queryForPrimaryKey('Bill', uri);
-  //     update({
-  //       objectType: 'Bill',
-  //       object: bill,
-  //       objectLazy: (savedResRef) => savedResRef.current[`bill-${i}`],
-  //       newObjectDataLazy: (savedResRef) => ({
-  //         spendingList: [savedResRef.current.createdSpending]
-  //       })
-  //     });
-  //   });
-
-  //   update({
-  //     objectType: 'Spending',
-  //     objectLazy: (savedResRef) => {
-  //       console.log(savedResRef);
-  //       return savedResRef.current.createdSpending;
-  //     },
-  //     newObjectDataLazy: (savedResRef) => ({
-  //       bills: bills.map((uri, i) => savedResRef.current[`bill-${i}`])
-  //     }),
-  //     onSuccess: formatSpendingHistory
-  //   });
   };
 
   const updateSpending = (spending, newData) => {
-    // newData.bills.forEach((uri, i) => {
-    //   const bill = queryForPrimaryKey('Bill', uri);
-    //   if (!bill) {
-    //     create({
-    //       objectType: 'Bill',
-    //       objectData: {
-    //         owner: user?.id,
-    //         uri
-    //       },
-    //       saveResTo: `bill-${i}`
-    //     });
-    //   }
-    // });
-
-    // const addedBills = [];
-    // const removedBills = [];
-    // const currentBills = [...spending.bills];
-    // currentBills.forEach(uri => {
-    //   if (!newData.includes(uri)) {
-    //     removedBills.push(uri);
-    //   }
-    // });
-
-    // newData.bills.forEach(uri => {
-    //   if (!currentBills.includes(uri)) {
-    //     addedBills.push(uri);
-    //   }
-    // });
-
-    // addedBills.forEach((uri, i) => {
-    //   update({
-    //     objectType: 'Bill',
-    //     objectLazy: (savedResRef) => savedResRef.current[`bill-${i}`],
-    //     newObjectDataLazy: (savedResRef) => {
-    //       const bill = savedResRef.current[`bill-${i}`];
-    //       return {
-    //         spendingList: [...bill.spendingList, spending]
-    //       }
-    //     }
-    //   });
-    // });
-
-    // removedBills.forEach((uri, i) => {
-    //   update({
-    //     objectType: 'Bill',
-    //     objectLazy: (savedResRef) => savedResRef.current[`bill-${i}`],
-    //     newObjectDataLazy: (savedResRef) => {
-    //       const bill = savedResRef.current[`bill-${i}`];
-    //       return {
-    //         spendingList: bill.spendingList.filter(sp => sp._id !== spending._id)
-    //       }
-    //     }
-    //   });
-    // });
-
     update({
       objectType: 'Spending',
       object: spending,
@@ -417,43 +334,6 @@ const SpendingProvider = ({ children }) => {
       onSuccess: formatSpendingHistory
     });
   }
-
-  // const createBill = ({
-  //   uri,
-  //   spending
-  // }, resKey) => {
-  //   create('Bill', {
-  //     owner: user?.id,
-  //     uri,
-  //     spending
-  //   }, () => null, resKey);
-  // }
-
-  // const assignBillToSpending = ({
-  //   uri,
-  //   spending
-  // }, resKey) => {
-  //   const bill = queryForPrimaryKey('Bill', uri);
-  //   if (bill) {
-  //     update(bill, 'Bill', {
-  //       spendingList: [...bill.spendingList, spending]
-  //     }, () => null, resKey);
-  //   } else {
-  //     createBill({ uri, spending }, resKey);
-  //   }
-  // }
-
-  // const removeBillFromSpending = ({
-  //   uri,
-  //   spending
-  // }) => {
-  //   const bill = queryForPrimaryKey('Bill', uri);
-  //   if (bill) {
-  //     update(bill, 'Bill', {
-  //       spendingList: bill.spendingList.filter((sp) => sp._id !== spending._id)
-  //     });
-  //   }
-  // }
   
   const submitUserInputs = () => {
     const valid = Object.values(userInputs).every(({ valid }) => valid);

@@ -4,6 +4,7 @@ import { VStack, Center, Text, Heading } from 'native-base';
 import { SpendingCard } from './SpendingCard';
 
 import { useSpendingHistory } from '../../provider/api';
+import { useAuth } from '../../provider/authentication';
 
 export const SpendingList = (
   ...boxProps
@@ -12,7 +13,7 @@ export const SpendingList = (
   return (
     <>
       {
-        Object.keys(value).length === 0 ?
+        !value || Object.keys(value).length === 0 ?
         <Text fontSize="lg">Aucune dépenses trouvées</Text>
         : Object.entries(value).map(([group, spending]) => {
           return (
