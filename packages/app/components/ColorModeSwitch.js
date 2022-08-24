@@ -6,6 +6,7 @@ import {
   SunIcon,
   MoonIcon,
 } from 'native-base';
+import { Platform } from 'react-native';
 
 export function ColorModeSwitch() {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -20,6 +21,10 @@ export function ColorModeSwitch() {
         position="absolute"
         top={4}
         right={2}
+        _web={{
+          top: undefined,
+          bottom: 8,
+        }}
         onPress={toggleColorMode}
         icon={colorMode === 'dark' ? <SunIcon /> : <MoonIcon />}
         accessibilityLabel="Color Mode Switch"

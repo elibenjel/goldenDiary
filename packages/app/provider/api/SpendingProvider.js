@@ -234,6 +234,7 @@ const SpendingProvider = ({ children }) => {
 
   // Wait for the initializer effect to execute before mounting the children
   if (lastUserIDRef.current !== user?.id) {
+    console.log('SpendingProvider not yet initialized for current user');
     return (
       <SpendingContext.Provider
         value={{

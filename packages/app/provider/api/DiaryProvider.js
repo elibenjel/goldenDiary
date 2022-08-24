@@ -26,10 +26,12 @@ const DiaryProvider = ({ children }) => {
     if (d) {
       diaryOwnerRef.current = d._owner;
       setDiary(d);
+      console.log('Opened user Diary')
     }
   });
 
   if (!correctDiaryOpened) {
+    console.log('User diary not opened yet')
     return (
       <DiaryContext.Provider
         value={{

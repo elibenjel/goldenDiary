@@ -179,6 +179,27 @@ const RealmProvider = ({ children }) => {
     // closeSyncRealm();
   }
 
+  const useQuery = ({
+    objectType,
+    queryOptions,
+    onSuccess,
+    onError
+  }) => {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const [complete, setComplete] = useState(false);
+    const [stale, setStale] = useState(false);
+    const { search, sort, descending, filter } = queryOptions;
+
+    const query = async () => {
+      return await queryNative
+    }
+    useEffect(() => {
+
+    })
+  }
+
   // Query the realm for an objectType, and format the result according to different options:
   //     - if provided, search applies to the raw list of results, and no other options apply
   //     - otherwise, sort and descending apply first to the raw list of results

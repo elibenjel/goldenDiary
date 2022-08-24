@@ -2,5 +2,6 @@
     "appId": "goldendiary-gesvv",
     "appUrl": "https://realm.mongodb.com/groups/6294a7e3e961a755186e6b00/apps/6294b20a40016fe276262811",
     "baseUrl": "https://realm.mongodb.com",
-    "dataSourceName": "mongodb-atlas"
+    "dataSourceName": "mongodb-atlas",
+    "graphqlEndpoint": "https://eu-west-1.aws.realm.mongodb.com/api/client/v2.0/app/goldendiary-gesvv/graphql"
 }

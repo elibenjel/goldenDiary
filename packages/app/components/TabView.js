@@ -27,6 +27,7 @@ export const TabView = (props) => {
               onPress={() => setIndex(i)}
               icon={icon({ focused, size : tabIconSize, color })} linkTo={linkTo}
               bg={focused ? bgFocused : bg}
+              divider={i < tabs.length - 1 ? true : false}
             >
               {title}
             </TabButton>

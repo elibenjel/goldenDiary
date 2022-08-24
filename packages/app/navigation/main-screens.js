@@ -1,4 +1,6 @@
 import React from 'react';
+
+import { Icon } from '../components/pure';
 import {
   MaterialCommunityIcons,
   Ionicons,
@@ -12,7 +14,7 @@ mainScreens.Home = {
   icon: ({ focused, color, size }) => {
     const IconFamily = focused ? Ionicons : Ionicons;
     const iconName = focused ? 'home' : 'home-outline';
-    return React.createElement(IconFamily, { name : iconName, size, color });
+    return <Icon family={IconFamily} name={iconName} size={size} color={color} />;
   },
   linkTo: '/'
 }
@@ -23,7 +25,7 @@ mainScreens.Spending = {
   icon: ({ focused, color, size }) => {
     const IconFamily = focused ? Ionicons : Ionicons;
     const iconName = focused ? 'receipt' : 'receipt-outline';
-    return React.createElement(IconFamily, { name : iconName, size, color });
+    return <Icon family={IconFamily} name={iconName} size={size} color={color} />;
   },
   linkTo: '/spending'
 }
@@ -33,7 +35,7 @@ mainScreens.Budget = {
   icon: ({ focused, color, size }) => {
     const IconFamily = focused ? MaterialCommunityIcons : MaterialCommunityIcons;
     const iconName = focused ? 'piggy-bank' : 'piggy-bank-outline';
-    return React.createElement(IconFamily, { name : iconName, size, color });
+    return <Icon family={IconFamily} name={iconName} size={size} color={color} />;
   },
   linkTo: '/budget'
 }
@@ -43,7 +45,7 @@ mainScreens.Simulation = {
   icon: ({ focused, color, size }) => {
     const IconFamily = focused ? Ionicons : Ionicons;
     const iconName = focused ? 'bar-chart' : 'bar-chart-outline';
-    return React.createElement(IconFamily, { name : iconName, size, color });
+    return <Icon family={IconFamily} name={iconName} size={size} color={color} />;
   },
   linkTo: '/simulation'
 }
@@ -53,7 +55,7 @@ mainScreens.Learn = {
   icon: ({ focused, color, size }) => {
     const IconFamily = focused ? AntDesign : AntDesign;
     const iconName = focused ? 'questioncircle' : 'questioncircleo';
-    return React.createElement(IconFamily, { name : iconName, size, color });
+    return <Icon family={IconFamily} name={iconName} size={size} color={color} />;
   },
   linkTo: '/learn'
 }
