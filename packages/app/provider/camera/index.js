@@ -98,18 +98,18 @@ const CameraProvider = ({ saveDir : saveDirArg, children }) => {
       exif: false
     }
 
-    const newPhoto = await cameraRef.current.takePictureAsync(options);
-    setPhoto(newPhoto);
-    // setPhoto({
-    //   uri: 'https://wallpaperaccess.com/full/317501.jpg',   // uncomment this function call and comment the above call when on emulator
-    //   base64: base64image
-    // })
+    // const newPhoto = await cameraRef.current.takePictureAsync(options);
+    // setPhoto(newPhoto);
+    setPhoto({
+      uri: 'https://wallpaperaccess.com/full/317501.jpg',   // uncomment this function call and comment the two above lines when on emulator
+      base64: base64image
+    });
   }
 
   const savePic = () => {
     const uri = saveDir + `${new ObjectId()}.jpeg`;
-    FileSystem.copyAsync({ from : photo.uri, to : uri }).then(() => {
-    // FileSystem.downloadAsync(photo.uri, uri).then(() => {            // uncomment this line and comment the above line when on emulator
+    // FileSystem.copyAsync({ from : photo.uri, to : uri }).then(() => {
+    FileSystem.downloadAsync(photo.uri, uri).then(() => {            // uncomment this line and comment the above line when on emulator
       onSaveSuccessRef.current(uri);
       setPhoto(undefined);
       setShowCamera(false);

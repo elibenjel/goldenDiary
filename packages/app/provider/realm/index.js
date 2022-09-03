@@ -14,14 +14,6 @@ const RealmProvider = ({ children }) => {
   const [localRealm, setLocalRealm] = useState();
   const [syncRealm, setSyncRealm] = useState();
   const lastUserIDRef = useRef(user?.id);
-  // const [version, setVersionAlt] = useState(0);
-  // const setVersion = (arg) => {
-  //   setVersionAlt(arg);
-  // }
-  const openTransactionRef = useRef(0);
-  const queueRef = useRef([]);
-  const savedResRef = useRef([]);
-  const invalidTransactionRef = useRef(false);
 
   const closeLocalRealm = () => {
     if (localRealm) {
@@ -124,8 +116,8 @@ const RealmProvider = ({ children }) => {
 
     // open a realm to manage the diary of the user
     Realm.open(config).then((openedRealm) => {
-      onRealmOpened(openedRealm);
       console.log('RealmProvider initialized');
+      onRealmOpened(openedRealm);
     }).catch(e => {
       console.log('Error while loading the realm:');
       console.log(e);
@@ -162,11 +154,8 @@ const RealmProvider = ({ children }) => {
   if ((!user && !localRealm) || (user && !syncRealm)) {
     console.log('Realm not yet opened');
     return (
-      <RealmContext.Provider
-        value={{}}
-      >
-        {children}
-      </RealmContext.Provider>
+      <>
+      </>
     )
   }
   
@@ -179,195 +168,180 @@ const RealmProvider = ({ children }) => {
     // closeSyncRealm();
   }
 
-  const useQuery = ({
-    objectType,
-    queryOptions,
-    onSuccess,
-    onError
-  }) => {
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
-    const [complete, setComplete] = useState(false);
-    const [stale, setStale] = useState(false);
-    const { search, sort, descending, filter } = queryOptions;
-
-    const query = async () => {
-      return await queryNative
-    }
-    useEffect(() => {
-
-    })
-  }
-
-  // Query the realm for an objectType, and format the result according to different options:
-  //     - if provided, search applies to the raw list of results, and no other options apply
-  //     - otherwise, sort and descending apply first to the raw list of results
-  //     - filter applies on the sorted list of results
-  // Returns a list of formatted results
-  const query = (objectType, { search, sort, descending, filter } = {}) => {
-    if (!realm) return [];
+  const queryAsync = async (objectType, { search, sort, descending, filter } = {}) => {
+    if (!realm) return await [];
 
     const results = realm.objects(objectType);
     if (search) {
-      return results;
+      return await results;
     }
 
     const sortProp = sort === 'date' ? 'when' : sort;
     const sorted = sortProp ? results.sorted(sortProp, descending || false) : results;
     const filtered = filter ? sorted : sorted;
-    return filtered;
+    return await filtered;
   }
 
-  const create = ({ objectType, objectData, onSuccess = () => null, saveResTo }) => {
-    if (!realm) {
-      console.log('The realm is not yet opened');
-      return 1;
+  const useQuery = ({
+    objectType,
+    queryOptions = {},
+    onSuccess,
+    onError
+  }) => {
+    const data = useRef();
+    // const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const [stale, setStale] = useState(false);
+    const { search, sort, descending, filter, refresh = true } = queryOptions;
+
+    const retry = () => {
+      setLoading(true);
+      setError(false);
+      setStale(false);
     }
 
-    if (openTransactionRef.current === 0) {
-      console.log('Impossible to modify the realm without calling beginTransaction before');
-      return 2;
-    }
-
-    console.log('Adding creation operation to the queue: ', objectType, objectData);
-    const operation = () => {
-      const obj = realm.create(
-        objectType,
-        new models[objectType](objectData)
-      );
-
-      if (saveResTo) {
-        console.log('saved:', obj)
-        savedResRef.current[saveResTo] = obj;
-      }
-
-      onSuccess();
-    }
-
-    queueRef.current.push(operation);
-    return 0;
-  }
-
-  const queryForPrimaryKey = (objectType, primaryKey) => {
-    return realm.objectForPrimaryKey(objectType, primaryKey);
-  }
-
-  const update = ({ objectType, object, objectLazy, newObjectData, newObjectDataLazy, onSuccess = () => null }) => {
-    if (!realm) {
-      console.log('The realm is not yet opened');
-      return 1;
-    }
-    
-    if (openTransactionRef.current === 0) {
-      console.log('Impossible to modify the realm without calling beginTransaction before');
-      return 2;
-    }
-
-    
-    const writeOK = newObjectData ? isUpdateAllowed(objectType, newObjectData) : true;
-    if (!writeOK) {
-      console.log('Operation cancelled: you attempted an invalid update on a ', objectType, ' object');
-      invalidTransactionRef.current = true
-      return 3;
-    }
-    
-    console.log('Adding update operation to the queue: ', objectType);
-    const operation = () => {
-      const obj = object || objectLazy(savedResRef);
-      const newObjData = newObjectData || newObjectDataLazy(savedResRef);
-      Object.entries(newObjData).forEach((([property, newValue]) => {
-        obj[property] = newValue;
-      }));
-
-      obj.updatedAt = getCurrentDate();
-      onSuccess();
-    }
-
-    queueRef.current.push(operation);
-    return 0;
-  }
-
-  const remove = (object, onSuccess = () => null) => {
-    if (!realm) {
-      console.log('The realm is not yet opened');
-      return 1;
-    }
-    
-    console.log('Adding remove operation to the queue: ', object);
-    // const objectToRemove = queryForPrimaryKey(objectType, object._id);
-    const operation = () => {
-      realm.delete(object);
-      onSuccess();
-    }
-
-    queueRef.current.push(operation);
-    return 0;
-  }
-
-  const beginTransaction = () => {
-    if (!realm) {
-      console.log('The realm is not yet opened');
-      return 1;
-    }
-    
-    openTransactionRef.current += 1;
-    console.log(openTransactionRef.current);
-    return 0;
-  }
-
-  const endTransaction = () => {
-    if (!realm) {
-      console.log('The realm is not yet opened');
-      return 1;
-    }
-    
-    openTransactionRef.current -= 1;
-    console.log(openTransactionRef.current);
-    if (openTransactionRef.current === 0) {
-      if (invalidTransactionRef.current) {
-        console.log('Resetting operation queue')
-        invalidTransactionRef.current = false;
-      } else {
-        console.log('Writing to the realm: ', queueRef.current);
-        realm.write(() => {
-          queueRef.current.forEach(operation => {
-            try {
-              operation();
-            } catch (e) {
-              queueRef.current = [];
-              savedResRef.current = {};
-              throw e;
-            }
-          });
+    useEffect(() => {
+      if (loading || (stale && refresh) ) {
+        stale && setStale(false);
+        !loading && setLoading(true);
+        queryAsync(objectType, { search, sort, descending, filter })
+        .then((res) => {
+          data.current = res;
+          onSuccess(res);
+          setLoading(false);
+        })
+        .catch(() => {
+          setError(true);
+          setLoading(false);
+          onError();
         });
       }
 
-      queueRef.current = [];
-      savedResRef.current = {};
-    }
+    }, [loading, stale]);
 
-    return 0;
+    return {
+      loading,
+      error,
+      stale,
+      retry
+    };
   }
 
-  // Render the children within the RealmContext's provider. The value contains
-  // everything that should be made available to descendants that use the
-  // useRealm hook.
+  const useMutations = ({
+    mutations,
+    onSuccess : onSuccessDefault,
+    onError : onErrorDefault
+  }) => {
+    const [success, setSuccess] = useState(false);
+    const [error, setError] = useState(false);
+    const mutate = ({
+      variables,
+      onSuccess : onSuccessArg,
+      onError : onErrorArg
+    } = {}) => {
+      setSuccess(false);
+      setError(false);
+      const queue = [];
+      mutations.forEach(({
+        object,
+        operation,
+      }) => {
+        const { type : objType, id : objId } = object;
+        const { type : opType, args = [] } = operation;
+        const opArgs = args.reduce((prev, curr) => {
+          if (!(curr in variables)) {
+            return prev;
+          }
+          
+          return { ...prev, [curr] : variables[curr] };
+        }, {});
+        let op;
+        switch (opType) {
+          case 'create':
+            op = () => create(objType, opArgs);
+            break;
+          case 'update':
+            op = () => update(objType, objId, opArgs);
+            break;
+          case 'remove':
+            op = () => remove(objType, objId);
+            break;
+          default:
+            throw `Invalid operation ${opType}`;
+        }
+
+        queue.push(op);
+      });
+
+      realm.write(() => {
+        try {
+          queue.forEach(op => op());
+          setSuccess(true);
+          if (onSuccessArg) {
+            onSuccessArg();
+          } else if (onSuccessDefault) {
+            onSuccessDefault();
+          }
+        } catch (e) {
+          setError(true);
+          if (onErrorArg) {
+            onErrorArg();
+          } else if (onErrorDefault) {
+            onErrorDefault();
+          }
+          throw e;
+        }
+      });
+    }
+
+    return {
+      success,
+      error,
+      mutate
+    }
+  }
+
+  const create = (objType, newData) => {
+    console.log('Creating object of type ', objType)
+    realm.create(
+      objType,
+      new models[objType](newData)
+    );
+  }
+
+  const update = (objType, objId, modifiedData) => {
+    const writeOK = isUpdateAllowed(objType, modifiedData);
+    console.log('modified : ', modifiedData)
+    if (!writeOK) {
+      throw `Operation cancelled: you attempted an invalid update on a ${objType} object`
+    }
+
+    const obj = realm.objectForPrimaryKey(objType, objId);
+    console.log('Updating object of type ', objType);
+    Object.entries(modifiedData).forEach((([property, newValue]) => {
+      obj[property] = newValue;
+    }));
+
+    obj.updatedAt = getCurrentDate();
+  }
+
+  const remove = (objType, objId) => {
+    console.log('Removing object of type ', objType);
+    const obj = realm.objectForPrimaryKey(objType, objId);
+    realm.delete(obj);
+  }
+
   return (
     <RealmContext.Provider
       value={{
-        query,
-        queryForPrimaryKey,
-        create,
-        update,
-        remove,
-        beginTransaction,
-        endTransaction
+        useQuery,
+        useMutations
       }}
     >
       {children}
     </RealmContext.Provider>
-  );
+  )
 }
 
 // The useRealm hook can be used by any descendant of the RealmProvider. It

@@ -79,14 +79,14 @@ const defaultUserInputs = {
     value: [],
     valid: true,
     setters: {},
-    cast: v => v
+    cast: v => v.map(uri => new models.Bill({ uri }))
   }
 }
 
 
 const SpendingProvider = ({ children }) => {
   // retrieve from the RealmProvider the realm to read and write spending data 
-  const { beginTransaction, endTransaction, query, create, update, remove } = useRealm();
+  const { useQuery, useMutations } = useRealm();
   const diary = useDiary();
   const { addSpendingCategory } = useDiaryActions();
   const { user } = useAuth();
@@ -133,21 +133,86 @@ const SpendingProvider = ({ children }) => {
     }
     
     setFormattingOptions(options);
+    console.log('Refetching Spending...')
+    retry();
 
-    const { group, ...queryOptions } = options;
-    const queryResults = query('Spending', queryOptions);
-    const results = grouped(queryResults, group);
-    setSpendingHistory(results);
+    // const { group, ...queryOptions } = options;
+    // const queryResults = query('Spending', queryOptions);
+    // const results = grouped(queryResults, group);
+    // setSpendingHistory(results);
   }
+
+  const { loading, retry } = useQuery({
+    objectType: 'Spending',
+    queryOptions: formattingOptions,
+    onSuccess: (data) => {
+      const groupedData = grouped(data, formattingOptions.group)
+      setSpendingHistory(groupedData);
+    }
+  });
+
+  const { mutate : create } = useMutations({
+    mutations: [
+      {
+        object: { type : 'Spending' },
+        operation: {
+          type : 'create',
+          args : [
+            'id',
+            'owner',
+            'name',
+            'amount',
+            'category',
+            'currency',
+            'where',
+            'when',
+            'bills',
+          ]
+        }
+      }
+    ],
+    onSuccess: formatSpendingHistory
+  });
+
+  const { mutate : update } = useMutations({
+    mutations: [
+      {
+        object: { type : 'Spending', id : focusedSpending?._id },
+        operation: {
+          type : 'update',
+          args : [
+            'name',
+            'amount',
+            'category',
+            'currency',
+            'where',
+            'when',
+            'bills',
+          ]
+        }
+      }
+    ],
+    onSuccess: formatSpendingHistory
+  });
+
+  const { mutate : remove } = useMutations({
+    mutations: [
+      {
+        object: { type : 'Spending', id : spendingToRemove?._id },
+        operation: { type : 'remove' }
+      }
+    ],
+    onSuccess: formatSpendingHistory
+  });
 
   // run this initializer effect to format spendingHistory and to set the setters for userInput before mounting the children
   useEffect(() => {
-    if (!diary || !query || lastUserIDRef.current === user?.id) {
+    if (!diary || !useQuery || loading || lastUserIDRef.current === user?.id) {
       return;
     }
 
     console.log('Running initializer effect for SpendingProvider...')
-    formatSpendingHistory();
+    // formatSpendingHistory();
 
     const onStringChange = (field) => (value) => {
       const valid = value.length > 0;
@@ -230,7 +295,7 @@ const SpendingProvider = ({ children }) => {
 
   console.log('SpendingProvider initialized: spendingHistory retrieved and setters for user inputs defined');
   lastUserIDRef.current = user?.id;
-  }, [user, diary, query]);
+  }, [user, diary, useQuery, loading]);
 
   // Wait for the initializer effect to execute before mounting the children
   if (lastUserIDRef.current !== user?.id) {
@@ -297,44 +362,6 @@ const SpendingProvider = ({ children }) => {
     setShowInputErrors(false);
     resetUserInputs();
   }
-
-  const createSpending = ({
-    name,
-    amount,
-    category,
-    currency = diary.defaultCurrency,
-    when,
-    bills
-  }) => {
-    const id = new ObjectId();
-    create({
-      objectType: 'Spending',
-      objectData: {
-        owner: user?.id,
-        id,
-        name,
-        amount,
-        category,
-        currency,
-        where: '',
-        when,
-        bills: bills.map(uri => new models.Bill({ uri }))
-      },
-      onSuccess: formatSpendingHistory
-    });
-  };
-
-  const updateSpending = (spending, newData) => {
-    update({
-      objectType: 'Spending',
-      object: spending,
-      newObjectData: {
-        ...newData,
-        bills: newData.bills.map(uri => new models.Bill({ uri }))
-      },
-      onSuccess: formatSpendingHistory
-    });
-  }
   
   const submitUserInputs = () => {
     const valid = Object.values(userInputs).every(({ valid }) => valid);
@@ -373,18 +400,29 @@ const SpendingProvider = ({ children }) => {
       return next;
     }, {});
 
-    beginTransaction();
+    // beginTransaction();
     if (addNewCategory) {
       addSpendingCategory(newData.category);
     }
 
     if (focusedSpending === null) {
-      createSpending(newData);
+      create({
+        variables: {
+          ...newData,
+          owner: user?._id,
+          currency: diary.defaultCurrency
+        }
+      });
+
+      // createSpending(newData);
     } else {
-      updateSpending(focusedSpending, newData);
+      update({
+        variables: newData
+      })
+      // updateSpending(focusedSpending, newData);
     }
 
-    endTransaction();
+    // endTransaction();
 
     blur();
     return 0;
@@ -393,11 +431,18 @@ const SpendingProvider = ({ children }) => {
   const removeSpending = (spending) => {
     setSpendingToRemove(spending);
   }
-  
+
   const confirmRemoveSpending = () => {
-    beginTransaction();
-    remove(spendingToRemove, formatSpendingHistory);
-    endTransaction();
+    setSpendingHistory(curr => {
+      const newValue = {};
+      Object.entries(curr).forEach(([k, v]) => {
+        newValue[k] = v.filter(el => !el._id.equals(spendingToRemove._id))
+      });
+
+      return newValue;
+    });
+
+    remove();
   }
 
   // Render the children within the SpendingContext's provider. The value contains

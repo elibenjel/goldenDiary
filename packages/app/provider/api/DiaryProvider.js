@@ -6,29 +6,38 @@ import { useAuth } from '../authentication';
 const DiaryContext = React.createContext(null);
 
 const DiaryProvider = ({ children }) => {
-  const { beginTransaction, endTransaction, query, update } = useRealm();
+  const { useQuery, useMutations } = useRealm();
   const { user } = useAuth();
 
   const [diary, setDiary] = useState();
   const diaryOwnerRef = useRef();
-  const correctDiaryOpened = user?.id ? diaryOwnerRef.current === user?.id : diaryOwnerRef.current === 'local';
-
-  useEffect(() => {
-    if (!query) {
-      return;
-    }
-
-    if (correctDiaryOpened) {
-      return;
-    }
-    
-    const d = query('Diary')[0];
-    if (d) {
-      diaryOwnerRef.current = d._owner;
-      setDiary(d);
-      console.log('Opened user Diary')
+  const { loading, retry } = useQuery({
+    objectType: 'Diary',
+    onSuccess: (data) => {
+      setDiary(data[0]);
+      diaryOwnerRef.current = data[0]._owner;
+      console.log('Opened user Diary');
     }
   });
+
+  const correctDiaryOpened = user?.id ? diaryOwnerRef.current === user?.id : diaryOwnerRef.current === 'local';
+
+  const { mutate } = useMutations({
+    mutations: [
+      {
+        object: { type : 'Diary', id : diary?._id },
+        operation: { type : 'update', args : ['spendingCategories'] }
+      }
+    ]
+  });
+
+  useEffect(() => {
+    if (!loading && !correctDiaryOpened) {
+      console.log('Refetching Diary...')
+      retry();
+      return;
+    }
+  }, [loading, correctDiaryOpened]);
 
   if (!correctDiaryOpened) {
     console.log('User diary not opened yet')
@@ -40,23 +49,17 @@ const DiaryProvider = ({ children }) => {
           diary: undefined,
         }}
       >
-        {children}
       </DiaryContext.Provider>
     )
   }
 
   const addSpendingCategory = (category) => {
-    beginTransaction();
-    update({
-      object: diary,
-      objectType: 'Diary',
-      newObjectData: {
-        spendingCategories: [...diary.spendingCategories, category]
+    mutate({
+      variables: {
+        spendingCategories: [...diary?.spendingCategories, category],
       },
-      onSuccess: () => setDiary(query('Diary')[0])
+      onSuccess: retry
     });
-
-    endTransaction();
   }
 
   const resetSettings = () => {
