@@ -406,7 +406,6 @@ const SpendingProvider = ({ children }) => {
     }
 
     if (focusedSpending === null) {
-      console.log(user, user?.id)
       create({
         variables: {
           ...newData,

@@ -89,7 +89,6 @@ class Spending {
     bills
   }) {
     this._owner = owner;
-    console.log('owner', this._owner)
     this._id = id;
     this.createdAt = getCurrentDate();
     this.updatedAt = getCurrentDate();
