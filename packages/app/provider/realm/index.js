@@ -303,7 +303,7 @@ const RealmProvider = ({ children }) => {
   }
 
   const create = (objType, newData) => {
-    console.log('Creating object of type ', objType)
+    console.log('Creating object of type ', objType, newData)
     realm.create(
       objType,
       new models[objType](newData)

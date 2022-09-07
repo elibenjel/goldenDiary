@@ -406,10 +406,11 @@ const SpendingProvider = ({ children }) => {
     }
 
     if (focusedSpending === null) {
+      console.log(user, user?.id)
       create({
         variables: {
           ...newData,
-          owner: user?._id,
+          owner: user?.id,
           currency: diary.defaultCurrency
         }
       });

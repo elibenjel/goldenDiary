@@ -11,9 +11,7 @@ import { useAuth } from '../../provider/authentication';
 const ICON_SIZE = 32;
 
 const HeaderRight = ({ user, signIn, signUp, signOut }) => {
-  // const user = false;
-  // const signIn = () => null;
-  // const signUp = () => null;
+
   return (
     <Menu defaultIsOpen={false} placement="left" trigger={triggerProps => {
       return (

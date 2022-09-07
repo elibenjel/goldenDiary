@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ApolloClient } from '@apollo/client';
 
 import { useAuth } from '../authentication';
-import { graphqlEndpoint } from '../../realm.json';
+import realmConfig from '../../realm.json';
 
 const RealmProvider = ({ children }) => <>{children}</>;
 
@@ -30,7 +30,7 @@ const RealmWebProvider = ({ children }) => {
       // Configure the ApolloClient to connect to your app's GraphQL endpoint
       const client = new ApolloClient({
         link: new HttpLink({
-          uri: graphqlEndpoint,
+          uri: realmConfig.graphqlEndpoint,
           // We define a custom fetch handler for the Apollo client that lets us authenticate GraphQL requests.
           // The function intercepts every Apollo HTTP request and adds an Authorization header with a valid
           // access token before sending the request.
@@ -69,20 +69,14 @@ const RealmWebProvider = ({ children }) => {
   }
 
 
-
   // Render the children within the RealmContext's provider. The value contains
   // everything that should be made available to descendants that use the
   // useRealm hook.
   return (
     <RealmContext.Provider
       value={{
-        query,
-        queryForPrimaryKey,
-        create,
-        update,
-        remove,
-        beginTransaction,
-        endTransaction
+        useQuery,
+        useMutations
       }}
     >
       {children}

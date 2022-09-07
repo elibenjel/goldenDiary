@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
-import Realm from 'realm';
-import { Overlay } from 'native-base';
+import { Realm } from './importRealm';
+// import { Overlay } from 'native-base';
 
 import { SignInModal } from '../../components/composite/SignInModal';
 import { SignUpModal } from '../../components/composite/SignUpModal';
