@@ -9,7 +9,7 @@ The app uses Realm to connect to a realm app and a mongodb atlas cluster, and th
 
 ## Getting Started
 
-- prerequisites: yarn, and creating an atlas cluster and a realm app with the config in the repo goldenDiaryBackend (follow the documentation of realm to create one)
+- prerequisites: yarn, and creating an atlas cluster and a realm app with the config in the repo [goldenDiaryBackend](https://github.com/elibenjel/goldenDiaryBackend) (follow the documentation of realm to create one)
 - clone this repo
 - modify the realm.json file to set the correct appId and appUrl, along with the graphqlEndpoint (all this can be found in the realm web interface, when connected to the app)
 - Run `yarn` on the root directory
